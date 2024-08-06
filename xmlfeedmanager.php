@@ -1,8 +1,3 @@
-<?php
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -11,19 +6,20 @@ class XmlFeedManager extends Module
         $this->tab = 'administration';
         $this->version = '1.0.0';
         $this->author = 'Marco Zagato';
-        $this->author_uri = 'https://dealbrut.com';
+        $this->need_instance = 0;
         $this->bootstrap = true;
+
         parent::__construct();
 
         $this->displayName = $this->l('XML Feed Manager');
         $this->description = $this->l('Manage multiple XML feeds for importing and updating product data without overwriting existing products.');
+
+        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
     public function install()
     {
-        return parent::install() &&
-               $this->registerHook('actionAdminControllerSetMedia') &&
-               $this->installDb();
+        return parent::install() && $this->registerHook('actionAdminControllerSetMedia') && $this->installDb();
     }
 
     public function uninstall()
@@ -33,42 +29,30 @@ class XmlFeedManager extends Module
 
     private function installDb()
     {
-        $sql1 = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."xmlfeedmanager_feeds` (
-            `id_feed` INT(11) NOT NULL AUTO_INCREMENT,
-            `feed_name` VARCHAR(255) NOT NULL,
-            `feed_url` VARCHAR(255) NOT NULL,
-            `feed_type` ENUM('full', 'update') NOT NULL DEFAULT 'full',
-            `last_imported` DATETIME DEFAULT NULL,
-            PRIMARY KEY (`id_feed`)
-        ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8;";
-
-        $sql2 = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."xmlfeedmanager_product_feed` (
-            `id_product` INT(11) NOT NULL,
-            `feed_name` VARCHAR(255) NOT NULL,
-            PRIMARY KEY (`id_product`, `feed_name`)
-        ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8;";
-
-        return Db::getInstance()->execute($sql1) && Db::getInstance()->execute($sql2);
+        $sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds` (
+                `id_feed` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `feed_name` VARCHAR(255) NOT NULL,
+                `feed_url` TEXT NOT NULL,
+                `feed_type` ENUM("full", "update") NOT NULL,
+                `last_imported` DATETIME,
+                PRIMARY KEY (`id_feed`)
+            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+        return Db::getInstance()->execute($sql);
     }
 
     private function uninstallDb()
     {
-        $sql1 = "DROP TABLE IF EXISTS `"._DB_PREFIX_."xmlfeedmanager_feeds`;";
-        $sql2 = "DROP TABLE IF EXISTS `"._DB_PREFIX_."xmlfeedmanager_product_feed`;";
-
-        return Db::getInstance()->execute($sql1) && Db::getInstance()->execute($sql2);
+        $sql = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds`;';
+        return Db::getInstance()->execute($sql);
     }
 
     public function getContent()
     {
         $output = null;
-
         if (Tools::isSubmit('submit' . $this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
             $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
-            $markup = (float)Tools::getValue('XMLFEEDMANAGER_MARKUP');
-
             Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
             foreach ($feedNames as $index => $feedName) {
                 if (!empty($feedName) && !empty($feedUrls[$index])) {
@@ -76,130 +60,113 @@ class XmlFeedManager extends Module
                         'feed_name' => pSQL($feedName),
                         'feed_url' => pSQL($feedUrls[$index]),
                         'feed_type' => pSQL($feedTypes[$index]),
-                        'last_imported' => null,
+                        'last_imported' => null
                     ));
                 }
             }
-
-            Configuration::updateValue('XMLFEEDMANAGER_MARKUP', $markup);
-
-            $fieldMapping = Tools::getValue('XMLFEEDMANAGER_FIELD_MAPPING');
-            Configuration::updateValue('XMLFEEDMANAGER_FIELD_MAPPING', json_encode($fieldMapping));
-
+            $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
+            Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
-
-        if (Tools::isSubmit('importFeeds')) {
-            try {
-                $feedHandler = new XmlFeedHandler();
-                $feedHandler->importFeeds((float)Configuration::get('XMLFEEDMANAGER_MARKUP'));
-                $output .= $this->displayConfirmation($this->l('Feeds imported successfully'));
-            } catch (Exception $e) {
-                $output .= $this->displayError($this->l('Error importing feeds: ') . $e->getMessage());
-            }
-        }
-
         return $output . $this->renderForm();
     }
 
     protected function renderForm()
     {
         $feeds = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
-        $fieldMapping = json_decode(Configuration::get('XMLFEEDMANAGER_FIELD_MAPPING'), true) ?: [];
-        $markup = (float)Configuration::get('XMLFEEDMANAGER_MARKUP');
-
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-
         foreach ($feeds as $feed) {
             $feedNames[] = $feed['feed_name'];
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
 
-        $xmlFields = !empty($feeds) ? $this->getXmlFields($feeds[0]['feed_url']) : [];
-        $prestashopFields = $this->getPrestashopFields();
+        $fields_form = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Settings'),
+                ),
+                'input' => array(
+                    array(
+                        'type' => 'textarea',
+                        'label' => $this->l('Feed Names (one per line)'),
+                        'name' => 'XMLFEEDMANAGER_FEED_NAMES',
+                        'cols' => 60,
+                        'rows' => 10,
+                        'value' => implode("\n", $feedNames),
+                    ),
+                    array(
+                        'type' => 'textarea',
+                        'label' => $this->l('Feed URLs (one per line)'),
+                        'name' => 'XMLFEEDMANAGER_FEED_URLS',
+                        'cols' => 60,
+                        'rows' => 10,
+                        'value' => implode("\n", $feedUrls),
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Markup Percentage'),
+                        'name' => 'XMLFEEDMANAGER_MARKUP_PERCENTAGE',
+                        'value' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
+                    ),
+                ),
+                'submit' => array(
+                    'title' => $this->l('Save'),
+                    'class' => 'btn btn-default pull-right'
+                )
+            )
+        );
 
-        $this->context->smarty->assign([
-            'module_name' => $this->displayName,
-            'feeds' => $feeds,
-            'XMLFEEDMANAGER_FIELD_MAPPING' => $fieldMapping,
-            'PRESTASHOP_FIELDS' => $prestashopFields,
-            'XMLFEEDMANAGER_MARKUP' => $markup,
-            'link' => $this->context->link,
-        ]);
-
-        return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
-    }
-
-    protected function getXmlFields($feedUrl)
-    {
-        $xmlData = file_get_contents($feedUrl);
-        $xml = simplexml_load_string($xmlData);
-        $fields = [];
-
-        if ($xml && isset($xml->product[0])) {
-            foreach ($xml->product[0] as $key => $value) {
-                $fields[] = $key;
-            }
+        // Add feed type selection
+        foreach ($feeds as $index => $feed) {
+            $fields_form['form']['input'][] = array(
+                'type' => 'select',
+                'label' => $this->l('Feed Type'),
+                'name' => 'XMLFEEDMANAGER_FEED_TYPES[]',
+                'options' => array(
+                    'query' => array(
+                        array('id' => 'full', 'name' => $this->l('Full')),
+                        array('id' => 'update', 'name' => $this->l('Update'))
+                    ),
+                    'id' => 'id',
+                    'name' => 'name'
+                ),
+                'value' => $feed['feed_type']
+            );
         }
 
-        return $fields;
+        $helper = new HelperForm();
+        $helper->module = $this;
+        $helper->name_controller = $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+        $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $helper->title = $this->displayName;
+        $helper->submit_action = 'submit' . $this->name;
+        $helper->fields_value = $this->getConfigFieldsValues($feeds);
+
+        return $helper->generateForm(array($fields_form));
     }
 
-    protected function getPrestashopFields()
-    {
-        return [
-            ['id' => 'name', 'name' => $this->l('Name')],
-            ['id' => 'reference', 'name' => $this->l('Reference')],
-            ['id' => 'ean13', 'name' => $this->l('EAN13')],
-            ['id' => 'upc', 'name' => $this->l('UPC')],
-            ['id' => 'price', 'name' => $this->l('Price')],
-            ['id' => 'wholesale_price', 'name' => $this->l('Wholesale Price')],
-            ['id' => 'description_short', 'name' => $this->l('Short Description')],
-            ['id' => 'description', 'name' => $this->l('Description')],
-            ['id' => 'id_category_default', 'name' => $this->l('Default Category')],
-            ['id' => 'quantity', 'name' => $this->l('Quantity')],
-            ['id' => 'active', 'name' => $this->l('Active')],
-            ['id' => 'weight', 'name' => $this->l('Weight')],
-            ['id' => 'width', 'name' => $this->l('Width')],
-            ['id' => 'height', 'name' => $this->l('Height')],
-            ['id' => 'depth', 'name' => $this->l('Depth')],
-            ['id' => 'id_manufacturer', 'name' => $this->l('Manufacturer')],
-            ['id' => 'id_supplier', 'name' => $this->l('Supplier')],
-        ];
-    }
-
-    public function getConfigFieldsValues($feeds, $fieldMapping, $markup)
+    public function getConfigFieldsValues($feeds)
     {
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-
         foreach ($feeds as $feed) {
             $feedNames[] = $feed['feed_name'];
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
 
-        $fields_values = [
+        return array(
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
-            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
-            'XMLFEEDMANAGER_MARKUP' => $markup,
-        ];
-
-        foreach ($fieldMapping as $xmlField => $prestashopField) {
-            $fields_values['XMLFEEDMANAGER_FIELD_MAPPING[' . $xmlField . ']'] = $prestashopField;
-        }
-
-        return $fields_values;
-    }
-
-    public function hookActionAdminControllerSetMedia()
-    {
-        $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
-        $this->context->controller->addCSS($this->_path . 'views/css/xmlfeedmanager.css');
+            'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
+            'XMLFEEDMANAGER_FEED_TYPES' => $feedTypes,
+        );
     }
 }
