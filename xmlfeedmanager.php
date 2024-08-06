@@ -63,7 +63,7 @@ class XmlFeedManager extends Module
         $output = null;
 
         if (Tools::isSubmit('submit' . $this->name)) {
-            Configuration::updateValue('XMLFEEDMANAGER_SETTING', Tools::getValue('XMLFEEDMANAGER_SETTING'));
+            Configuration::updateValue('XMLFEEDMANAGER_XML_FEED_URL', Tools::getValue('XMLFEEDMANAGER_XML_FEED_URL'));
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
 
@@ -80,9 +80,9 @@ class XmlFeedManager extends Module
                 'input' => array(
                     array(
                         'type' => 'text',
-                        'label' => $this->l('Example Setting'),
-                        'name' => 'XMLFEEDMANAGER_SETTING',
-                        'size' => 20,
+                        'label' => $this->l('XML Feed URL'),
+                        'name' => 'XMLFEEDMANAGER_XML_FEED_URL',
+                        'size' => 100,
                         'required' => true,
                     ),
                 ),
@@ -110,7 +110,7 @@ class XmlFeedManager extends Module
     public function getConfigFieldsValues()
     {
         return array(
-            'XMLFEEDMANAGER_SETTING' => Tools::getValue('XMLFEEDMANAGER_SETTING', Configuration::get('XMLFEEDMANAGER_SETTING')),
+            'XMLFEEDMANAGER_XML_FEED_URL' => Tools::getValue('XMLFEEDMANAGER_XML_FEED_URL', Configuration::get('XMLFEEDMANAGER_XML_FEED_URL')),
         );
     }
 }
