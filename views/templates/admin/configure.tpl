@@ -2,27 +2,20 @@
     <div class="panel">
         <h3>{$module_name}</h3>
         <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='Feed Names (one per line)'}</label>
+            <label class="control-label col-lg-3">{$l s='Feed Names and URLs'}</label>
             <div class="col-lg-9">
-                <textarea name="XMLFEEDMANAGER_FEED_NAMES" cols="60" rows="10" class="form-control">{$XMLFEEDMANAGER_FEED_NAMES}</textarea>
-                <p class="help-block">{$l s='Enter the names of the feeds, one per line.'}</p>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='Feed URLs (one per line)'}</label>
-            <div class="col-lg-9">
-                <textarea name="XMLFEEDMANAGER_FEED_URLS" cols="60" rows="10" class="form-control">{$XMLFEEDMANAGER_FEED_URLS}</textarea>
-                <p class="help-block">{$l s='Enter the URLs of the feeds, one per line.'}</p>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='Feed Types (one per line)'}</label>
-            <div class="col-lg-9">
-                <select name="XMLFEEDMANAGER_FEED_TYPES" class="form-control">
-                    <option value="full" {$XMLFEEDMANAGER_FEED_TYPES == 'full' ? 'selected' : ''}>{$l s='Full'}</option>
-                    <option value="update" {$XMLFEEDMANAGER_FEED_TYPES == 'update' ? 'selected' : ''}>{$l s='Update'}</option>
-                </select>
-                <p class="help-block">{$l s='Select the type for each feed.'}</p>
+                {foreach from=$feeds item=feed name=feeds}
+                    <div class="input-group">
+                        <input type="text" name="XMLFEEDMANAGER_FEED_NAMES[]" value="{$feed.feed_name}" class="form-control" placeholder="{$l s='Feed Name'}" />
+                        <input type="text" name="XMLFEEDMANAGER_FEED_URLS[]" value="{$feed.feed_url}" class="form-control" placeholder="{$l s='Feed URL'}" />
+                        <select name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">
+                            <option value="full" {if $feed.feed_type == 'full'}selected{/if}>{$l s='Full'}</option>
+                            <option value="update" {if $feed.feed_type == 'update'}selected{/if}>{$l s='Update'}</option>
+                        </select>
+                    </div>
+                    <br/>
+                {/foreach}
+                <button type="button" class="btn btn-primary" id="add-feed">{$l s='Add Feed'}</button>
             </div>
         </div>
         <div class="form-group">
@@ -55,3 +48,19 @@
         </div>
     </div>
 </form>
+<script>
+document.getElementById('add-feed').addEventListener('click', function() {
+    var feedContainer = document.createElement('div');
+    feedContainer.className = 'input-group';
+    feedContainer.innerHTML = `
+        <input type="text" name="XMLFEEDMANAGER_FEED_NAMES[]" class="form-control" placeholder="Feed Name" />
+        <input type="text" name="XMLFEEDMANAGER_FEED_URLS[]" class="form-control" placeholder="Feed URL" />
+        <select name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">
+            <option value="full">Full</option>
+            <option value="update">Update</option>
+        </select>
+        <br/>
+    `;
+    document.querySelector('.form-group .col-lg-9').appendChild(feedContainer);
+});
+</script>
