@@ -202,4 +202,4 @@ class XmlFeedManager extends Module
         $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
         $this->context->controller->addCSS($this->_path . 'views/css/xmlfeedmanager.css');
     }
-}       
+}
