@@ -80,6 +80,16 @@ class XmlFeedManager extends Module
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
 
+        if (Tools::isSubmit('importFeeds')) {
+            try {
+                $feedHandler = new XmlFeedHandler();
+                $feedHandler->importFeeds();
+                $output .= $this->displayConfirmation($this->l('Feeds imported successfully'));
+            } catch (Exception $e) {
+                $output .= $this->displayError($this->l('Error importing feeds: ') . $e->getMessage());
+            }
+        }
+
         return $output . $this->renderForm();
     }
 
@@ -103,6 +113,7 @@ class XmlFeedManager extends Module
             'form' => array(
                 'legend' => array(
                     'title' => $this->l('Settings'),
+                    'icon' => 'icon-cogs'
                 ),
                 'input' => array(
                     array(
@@ -111,6 +122,7 @@ class XmlFeedManager extends Module
                         'name' => 'XMLFEEDMANAGER_FEED_NAMES',
                         'cols' => 60,
                         'rows' => 10,
+                        'desc' => $this->l('Enter the names of the feeds, one per line.'),
                         'value' => implode("\n", $feedNames),
                     ),
                     array(
@@ -119,6 +131,7 @@ class XmlFeedManager extends Module
                         'name' => 'XMLFEEDMANAGER_FEED_URLS',
                         'cols' => 60,
                         'rows' => 10,
+                        'desc' => $this->l('Enter the URLs of the feeds, one per line.'),
                         'value' => implode("\n", $feedUrls),
                     ),
                 ),
@@ -140,6 +153,7 @@ class XmlFeedManager extends Module
                     'id' => 'id',
                     'name' => 'name'
                 ),
+                'desc' => $this->l('Select the corresponding PrestaShop field for the XML field ') . $xmlField,
                 'value' => isset($fieldMapping[$xmlField]) ? $fieldMapping[$xmlField] : ''
             );
         }
@@ -186,36 +200,4 @@ class XmlFeedManager extends Module
             ['id' => 'description_short', 'name' => $this->l('Short Description')],
             ['id' => 'description', 'name' => $this->l('Description')],
             ['id' => 'id_category_default', 'name' => $this->l('Default Category')],
-            ['id' => 'quantity', 'name' => $this->l('Quantity')],
-            ['id' => 'active', 'name' => $this->l('Active')],
-            ['id' => 'weight', 'name' => $this->l('Weight')],
-            ['id' => 'width', 'name' => $this->l('Width')],
-            ['id' => 'height', 'name' => $this->l('Height')],
-            ['id' => 'depth', 'name' => $this->l('Depth')],
-            ['id' => 'id_manufacturer', 'name' => $this->l('Manufacturer')],
-            ['id' => 'id_supplier', 'name' => $this->l('Supplier')],
-        ];
-    }
-
-    public function getConfigFieldsValues($feeds, $fieldMapping)
-    {
-        $feedNames = array();
-        $feedUrls = array();
-
-        foreach ($feeds as $feed) {
-            $feedNames[] = $feed['feed_name'];
-            $feedUrls[] = $feed['feed_url'];
-        }
-
-        $fields_values = [
-            'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
-            'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
-        ];
-
-        foreach ($fieldMapping as $xmlField => $prestashopField) {
-            $fields_values['XMLFEEDMANAGER_FIELD_MAPPING[' . $xmlField . ']'] = $prestashopField;
-        }
-
-        return $fields_values;
-    }
-}
+            ['id' => 'quantity', 'name' => $this->l('Quantity
