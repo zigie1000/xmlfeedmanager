@@ -68,7 +68,7 @@
                 <td>{$feed.feed_name}</td>
                 <td>{$feed.feed_url}</td>
                 <td>{ucfirst($feed.feed_type)}</td>
-                <td>{$feed.last_imported}</td>
+                <td>{if $feed.last_imported}{$feed.last_imported}{else}{$l s='Never'}{/if}</td>
             </tr>
             {/foreach}
         </tbody>
