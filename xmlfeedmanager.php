@@ -9,7 +9,7 @@ class XmlFeedManager extends Module
     {
         $this->name = 'xmlfeedmanager';
         $this->tab = 'administration';
-        $this->version = '1.1.0';
+        $this->version = '1.0.0';
         $this->author = 'Marco Zagato';
         $this->author_uri = 'https://dealbrut.com';
         $this->bootstrap = true;
@@ -219,4 +219,3 @@ class XmlFeedManager extends Module
         return $fields_values;
     }
 }
-                                                  
