@@ -38,6 +38,7 @@ class XmlFeedManager extends Module
             `feed_name` VARCHAR(255) NOT NULL,
             `feed_url` VARCHAR(255) NOT NULL,
             `feed_type` ENUM('full', 'update') NOT NULL DEFAULT 'full',
+            `last_imported` DATETIME DEFAULT NULL,
             PRIMARY KEY (`id_feed`)
         ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8;";
 
@@ -67,6 +68,7 @@ class XmlFeedManager extends Module
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
             $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
             $markup = (float)Tools::getValue('XMLFEEDMANAGER_MARKUP');
+
             Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
             foreach ($feedNames as $index => $feedName) {
                 if (!empty($feedName) && !empty($feedUrls[$index])) {
@@ -74,6 +76,7 @@ class XmlFeedManager extends Module
                         'feed_name' => pSQL($feedName),
                         'feed_url' => pSQL($feedUrls[$index]),
                         'feed_type' => pSQL($feedTypes[$index]),
+                        'last_imported' => null,
                     ));
                 }
             }
@@ -203,7 +206,7 @@ class XmlFeedManager extends Module
         // Add feed history
         $historyHtml = '<div class="panel"><h3>' . $this->l('Feed History') . '</h3><table class="table"><thead><tr><th>' . $this->l('Feed Name') . '</th><th>' . $this->l('URL') . '</th><th>' . $this->l('Type') . '</th><th>' . $this->l('Last Imported') . '</th></tr></thead><tbody>';
         foreach ($feeds as $feed) {
-            $historyHtml  .= '<tr><td>' . $feed['feed_name'] . '</td><td>' . $feed['feed_url'] . '</td><td>' . ucfirst($feed['feed_type']) . '</td><td>' . $this->getLastImportDate($feed['feed_name']) . '</td></tr>';
+            $historyHtml .= '<tr><td>' . $feed['feed_name'] . '</td><td>' . $feed['feed_url'] . '</td><td>' . ucfirst($feed['feed_type']) . '</td><td>' . ($feed['last_imported'] ? $feed['last_imported'] : $this->l('Never')) . '</td></tr>';
         }
         $historyHtml .= '</tbody></table></div>';
 
@@ -284,12 +287,5 @@ class XmlFeedManager extends Module
         }
 
         return $fields_values;
-    }
-
-    protected function getLastImportDate($feedName)
-    {
-        // Placeholder function to fetch the last import date of the feed
-        // This should be implemented to retrieve actual data
-        return '2024-08-06';
     }
 }
