@@ -2,23 +2,14 @@
     <div class="panel">
         <h3>{$module_name}</h3>
         <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='Example Setting'}</label>
+            <label class="control-label col-lg-3">{$l s='XML Feed URL'}</label>
             <div class="col-lg-9">
-                <input type="text" name="example_setting" value="{$example_setting}" class="form-control">
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='XML File'}</label>
-            <div class="col-lg-9">
-                <input type="file" name="xml_file" class="form-control">
+                <input type="text" name="XMLFEEDMANAGER_XML_FEED_URL" value="{$XMLFEEDMANAGER_XML_FEED_URL}" class="form-control">
             </div>
         </div>
         <div class="panel-footer">
             <button type="submit" class="btn btn-default pull-right" name="submitxmlfeedmanager">
                 <i class="process-icon-save"></i> {$save}
-            </button>
-            <button type="submit" class="btn btn-default pull-right" name="scanXmlFeed">
-                <i class="process-icon-scan"></i> {$scan}
             </button>
         </div>
     </div>
