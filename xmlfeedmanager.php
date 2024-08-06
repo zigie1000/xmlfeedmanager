@@ -121,107 +121,16 @@ class XmlFeedManager extends Module
         $xmlFields = !empty($feeds) ? $this->getXmlFields($feeds[0]['feed_url']) : [];
         $prestashopFields = $this->getPrestashopFields();
 
-        $fields_form = array(
-            'form' => array(
-                'legend' => array(
-                    'title' => $this->l('Settings'),
-                    'icon' => 'icon-cogs'
-                ),
-                'input' => array(
-                    array(
-                        'type' => 'hidden',
-                        'name' => 'XMLFEEDMANAGER_FEED_NAMES[]',
-                    ),
-                    array(
-                        'type' => 'hidden',
-                        'name' => 'XMLFEEDMANAGER_FEED_URLS[]',
-                    ),
-                    array(
-                        'type' => 'hidden',
-                        'name' => 'XMLFEEDMANAGER_FEED_TYPES[]',
-                    ),
-                    array(
-                        'type' => 'text',
-                        'label' => $this->l('Markup Percentage'),
-                        'name' => 'XMLFEEDMANAGER_MARKUP',
-                        'desc' => $this->l('Enter the markup percentage to be applied to product prices.'),
-                        'value' => $markup,
-                    ),
-                ),
-                'submit' => array(
-                    'title' => $this->l('Save'),
-                    'class' => 'btn btn-default pull-right'
-                )
-            )
-        );
+        $this->context->smarty->assign([
+            'module_name' => $this->displayName,
+            'feeds' => $feeds,
+            'XMLFEEDMANAGER_FIELD_MAPPING' => $fieldMapping,
+            'PRESTASHOP_FIELDS' => $prestashopFields,
+            'XMLFEEDMANAGER_MARKUP' => $markup,
+            'link' => $this->context->link,
+        ]);
 
-        // Add feed configurations
-        foreach ($feeds as $index => $feed) {
-            $fields_form['form']['input'][] = array(
-                'type' => 'text',
-                'label' => $this->l('Feed Name'),
-                'name' => 'XMLFEEDMANAGER_FEED_NAMES[' . $index . ']',
-                'value' => $feed['feed_name'],
-                'col' => 3
-            );
-            $fields_form['form']['input'][] = array(
-                'type' => 'text',
-                'label' => $this->l('Feed URL'),
-                'name' => 'XMLFEEDMANAGER_FEED_URLS[' . $index . ']',
-                'value' => $feed['feed_url'],
-                'col' => 6
-            );
-            $fields_form['form']['input'][] = array(
-                'type' => 'select',
-                'label' => $this->l('Feed Type'),
-                'name' => 'XMLFEEDMANAGER_FEED_TYPES[' . $index . ']',
-                'options' => array(
-                    'query' => array(
-                        array('id' => 'full', 'name' => $this->l('Full')),
-                        array('id' => 'update', 'name' => $this->l('Update'))
-                    ),
-                    'id' => 'id',
-                    'name' => 'name'
-                ),
-                'value' => $feed['feed_type']
-            );
-        }
-
-        // Add mapping fields
-        foreach ($xmlFields as $xmlField) {
-            $fields_form['form']['input'][] = array(
-                'type' => 'select',
-                'label' => $this->l('Map ' . $xmlField),
-                'name' => 'XMLFEEDMANAGER_FIELD_MAPPING[' . $xmlField . ']',
-                'options' => array(
-                    'query' => $prestashopFields,
-                    'id' => 'id',
-                    'name' => 'name'
-                ),
-                'desc' => $this->l('Select the corresponding PrestaShop field for the XML field ') . $xmlField,
-                'value' => isset($fieldMapping[$xmlField]) ? $fieldMapping[$xmlField] : ''
-            );
-        }
-
-        // Add feed history
-        $historyHtml = '<div class="panel"><h3>' . $this->l('Feed History') . '</h3><table class="table"><thead><tr><th>' . $this->l('Feed Name') . '</th><th>' . $this->l('URL') . '</th><th>' . $this->l('Type') . '</th><th>' . $this->l('Last Imported') . '</th></tr></thead><tbody>';
-        foreach ($feeds as $feed) {
-            $historyHtml .= '<tr><td>' . $feed['feed_name'] . '</td><td>' . $feed['feed_url'] . '</td><td>' . ucfirst($feed['feed_type']) . '</td><td>' . ($feed['last_imported'] ? $feed['last_imported'] : $this->l('Never')) . '</td></tr>';
-        }
-        $historyHtml .= '</tbody></table></div>';
-
-        $helper = new HelperForm();
-        $helper->module = $this;
-        $helper->name_controller = $this->name;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
-        $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
-        $helper->title = $this->displayName;
-        $helper->submit_action = 'submit' . $this->name;
-        $helper->fields_value = $this->getConfigFieldsValues($feeds, $fieldMapping, $markup);
-
-        return $helper->generateForm(array($fields_form)) . $historyHtml;
+        return $this->display(__FILE__, 'views/templates/admin/configure.tpl');
     }
 
     protected function getXmlFields($feedUrl)
@@ -289,3 +198,106 @@ class XmlFeedManager extends Module
         return $fields_values;
     }
 }
+`views/templates/admin/configure.tpl`
+
+```tpl
+<form action="{$link->getAdminLink('AdminXmlFeedManager')}" method="post" class="defaultForm form-horizontal">
+    <div class="panel">
+        <h3>{$module_name}</h3>
+        <div class="form-group">
+            <label class="control-label col-lg-3">Feed Names and URLs</label>
+            <div class="col-lg-9">
+                {foreach from=$feeds item=feed name=feeds}
+                    <div class="input-group">
+                        <input type="text" name="XMLFEEDMANAGER_FEED_NAMES[]" value="{$feed.feed_name}" class="form-control" placeholder="Feed Name" />
+                        <input type="text" name="XMLFEEDMANAGER_FEED_URLS[]" value="{$feed.feed_url}" class="form-control" placeholder="Feed URL" />
+                        <select name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">
+                            <option value="full" {if $feed.feed_type == 'full'}selected{/if}>{$l s='Full'}</option>
+                            <option value="update" {if $feed.feed_type == 'update'}selected{/if}>{$l s='Update'}</option>
+                        </select>
+                        <button type="button" class="btn btn-danger remove-feed">{$l s='Remove'}</button>
+                    </div>
+                    <br/>
+                {/foreach}
+                <button type="button" class="btn btn-primary" id="add-feed">{$l s='Add Feed'}</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="control-label col-lg-3">Markup Percentage</label>
+            <div class="col-lg-9">
+                <input type="text" name="XMLFEEDMANAGER_MARKUP" value="{$XMLFEEDMANAGER_MARKUP}" class="form-control" />
+                <p class="help-block">{$l s='Enter the markup percentage to be applied to product prices.'}</p>
+            </div>
+        </div>
+        {foreach from=$XMLFEEDMANAGER_FIELD_MAPPING key=xmlField item=prestashopField}
+        <div class="form-group">
+            <label class="control-label col-lg-3">{$l s='Map '}{$xmlField}</label>
+            <div class="col-lg-9">
+                <select name="XMLFEEDMANAGER_FIELD_MAPPING[{$xmlField}]" class="form-control">
+                    {foreach from=$PRESTASHOP_FIELDS item=field}
+                    <option value="{$field.id}" {if $prestashopField == $field.id}selected="selected"{/if}>{$field.name}</option>
+                    {/foreach}
+                </select>
+                <p class="help-block">{$l s='Select the corresponding PrestaShop field for the XML field '}{$xmlField}</p>
+            </div>
+        </div>
+        {/foreach}
+        <div class="panel-footer">
+            <button type="submit" class="btn btn-default pull-right" name="submitxmlfeedmanager">
+                <i class="process-icon-save"></i> {$l s='Save'}
+            </button>
+            <button type="submit" class="btn btn-primary pull-right" name="importFeeds" style="margin-right: 10px;">
+                <i class="process-icon-refresh"></i> {$l s='Import Feeds'}
+            </button>
+        </div>
+    </div>
+</form>
+
+<!-- Feed History Section -->
+<div class="panel">
+    <h3>{$l s='Feed History'}</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>{$l s='Feed Name'}</th>
+                <th>{$l s='URL'}</th>
+                <th>{$l s='Type'}</th>
+                <th>{$l s='Last Imported'}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {foreach from=$feeds item=feed}
+            <tr>
+                <td>{$feed.feed_name}</td>
+                <td>{$feed.feed_url}</td>
+                <td>{ucfirst($feed.feed_type)}</td>
+                <td>{if $feed.last_imported}{$feed.last_imported}{else}{$l s='Never'}{/if}</td>
+            </tr>
+            {/foreach}
+        </tbody>
+    </table>
+</div>
+
+<script>
+document.getElementById('add-feed').addEventListener('click', function() {
+    var feedContainer = document.createElement('div');
+    feedContainer.className = 'input-group';
+    feedContainer.innerHTML = `
+        <input type="text" name="XMLFEEDMANAGER_FEED_NAMES[]" class="form-control" placeholder="Feed Name" />
+        <input type="text" name="XMLFEEDMANAGER_FEED_URLS[]" class="form-control" placeholder="Feed URL" />
+        <select name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">
+            <option value="full">Full</option>
+            <option value="update">Update</option>
+        </select>
+        <button type="button" class="btn btn-danger remove-feed">Remove</button>
+        <br/>
+    `;
+    document.querySelector('.form-group .col-lg-9').appendChild(feedContainer);
+});
+
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList.contains('remove-feed')) {
+        e.target.closest('.input-group').remove();
+    }
+});
+</script>
