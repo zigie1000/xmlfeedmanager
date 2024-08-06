@@ -37,5 +37,13 @@ class AdminXmlFeedManagerController extends ModuleAdminController
             $this->context->smarty->assign('mappings', $mappings);
             $this->setTemplate('recommend_mappings.tpl');
         }
+
+        if (Tools::isSubmit('confirmMappings')) {
+            $confirmedMappings = Tools::getValue('mappings');
+            foreach ($confirmedMappings as $xmlField => $prestashopField) {
+                XmlFeedMapping::addMapping($xmlField, $prestashopField);
+            }
+            $this->context->smarty->assign('confirmation', $this->l('Mappings saved successfully.'));
+        }
     }
 }
