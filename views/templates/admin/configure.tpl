@@ -50,12 +50,6 @@
             </tbody>
         </table>
         <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='Field Name'}</label>
-            <div class="col-lg-9">
-                <input type="text" name="field_name" class="form-control">
-            </div>
-        </div>
-        <div class="form-group">
             <label class="control-label col-lg-3">{$l s='PrestaShop Field'}</label>
             <div class="col-lg-9">
                 <input type="text" name="prestashop_field" class="form-control">
