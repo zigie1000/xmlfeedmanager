@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/digistas/public_html/dealbrut.com/prestashop/modules/xmlfeedmanager/
+    - /bin/cp -r * $DEPLOYPATH
