@@ -1,5 +1,4 @@
 <?php
-
 class XmlFeedMapping extends ObjectModel
 {
     public $id_mapping;
