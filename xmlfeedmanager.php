@@ -135,7 +135,6 @@ class XmlFeedManager extends Module
 
     protected function getXmlFields($feedUrl)
     {
-        // Fetch the first XML feed to extract field names
         $xmlData = file_get_contents($feedUrl);
         $xml = simplexml_load_string($xmlData);
         $fields = [];
@@ -203,4 +202,4 @@ class XmlFeedManager extends Module
         $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
         $this->context->controller->addCSS($this->_path . 'views/css/xmlfeedmanager.css');
     }
-}
+}       
