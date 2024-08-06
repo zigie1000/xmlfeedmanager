@@ -1,53 +1,43 @@
-class XmlFeedManager extends Module
-{
-    public function __construct()
-    {
+class XmlFeedManager extends Module {
+    public function __construct() {
         $this->name = 'xmlfeedmanager';
         $this->tab = 'administration';
         $this->version = '1.0.0';
         $this->author = 'Marco Zagato';
         $this->need_instance = 0;
         $this->bootstrap = true;
-
         parent::__construct();
-
         $this->displayName = $this->l('XML Feed Manager');
         $this->description = $this->l('Manage multiple XML feeds for importing and updating product data without overwriting existing products.');
-
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
-    public function install()
-    {
+    public function install() {
         return parent::install() && $this->registerHook('actionAdminControllerSetMedia') && $this->installDb();
     }
 
-    public function uninstall()
-    {
+    public function uninstall() {
         return parent::uninstall() && $this->uninstallDb();
     }
 
-    private function installDb()
-    {
+    private function installDb() {
         $sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds` (
-                `id_feed` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-                `feed_name` VARCHAR(255) NOT NULL,
-                `feed_url` TEXT NOT NULL,
-                `feed_type` ENUM("full", "update") NOT NULL,
-                `last_imported` DATETIME,
-                PRIMARY KEY (`id_feed`)
-            ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+            `id_feed` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `feed_name` VARCHAR(255) NOT NULL,
+            `feed_url` TEXT NOT NULL,
+            `feed_type` ENUM("full", "update") NOT NULL,
+            `last_imported` DATETIME,
+            PRIMARY KEY (`id_feed`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
         return Db::getInstance()->execute($sql);
     }
 
-    private function uninstallDb()
-    {
+    private function uninstallDb() {
         $sql = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds`;';
         return Db::getInstance()->execute($sql);
     }
 
-    public function getContent()
-    {
+    public function getContent() {
         $output = null;
         if (Tools::isSubmit('submit' . $this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
@@ -71,8 +61,7 @@ class XmlFeedManager extends Module
         return $output . $this->renderForm();
     }
 
-    protected function renderForm()
-    {
+    protected function renderForm() {
         $feeds = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
         $feedNames = array();
         $feedUrls = array();
@@ -151,8 +140,7 @@ class XmlFeedManager extends Module
         return $helper->generateForm(array($fields_form));
     }
 
-    public function getConfigFieldsValues($feeds)
-    {
+    public function getConfigFieldsValues($feeds) {
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
@@ -161,7 +149,6 @@ class XmlFeedManager extends Module
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
-
         return array(
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
