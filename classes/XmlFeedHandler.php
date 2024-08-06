@@ -25,31 +25,26 @@ class XmlFeedHandler
             throw new Exception("Error parsing XML from URL: $feedUrl");
         }
 
-        foreach ($xml->product as $product) {
-            $existingProductId = $this->getProductIdByReferenceAndFeed((string) $product->reference, $feedName);
-            if ($existingProductId) {
-                // Update existing product
-                $existingProduct = new Product($existingProductId);
-                $existingProduct->price = (float) $product->price;
-                $existingProduct->description = (string) $product->description;
-                $existingProduct->update();
-            } else {
-                // Add new product
-                $newProduct = new Product();
-                $newProduct->name = (string) $product->name;
-                $newProduct->price = (float) $product->price;
-                $newProduct->id_category_default = $this->getCategoryId((string) $product->category);
-                $newProduct->reference = (string) $product->reference;
-                $newProduct->description = (string) $product->description;
-                $newProduct->add();
+        $fieldMapping = json_decode(Configuration::get('XMLFEEDMANAGER_FIELD_MAPPING'), true);
 
-                // Track which feed the product came from
-                Db::getInstance()->insert('xmlfeedmanager_product_feed', array(
-                    'id_product' => (int)$newProduct->id,
-                    'feed_name' => pSQL($feedName),
-                ));
+        foreach ($xml->product as $product) {
+            $mappedProduct = $this->mapFields($product, $fieldMapping);
+            $existingProductId = $this->getProductIdByReferenceAndFeed($mappedProduct['reference'], $feedName);
+            if ($existingProductId) {
+                $this->updateProduct($existingProductId, $mappedProduct);
+            } else {
+                $this->addNewProduct($mappedProduct, $feedName);
             }
         }
+    }
+
+    protected function mapFields($product, $fieldMapping)
+    {
+        $mappedProduct = [];
+        foreach ($fieldMapping as $xmlField => $prestashopField) {
+            $mappedProduct[$prestashopField] = (string) $product->$xmlField;
+        }
+        return $mappedProduct;
     }
 
     protected function getProductIdByReferenceAndFeed($reference, $feedName)
@@ -61,44 +56,26 @@ class XmlFeedHandler
         return Db::getInstance()->getValue($sql);
     }
 
-    protected function recommendPrestaShopField($xmlField)
+    protected function updateProduct($productId, $mappedProduct)
     {
-        $recommendedField = '';
-        switch ($xmlField) {
-            case 'name':
-                $recommendedField = 'name';
-                break;
-            case 'price':
-                $recommendedField = 'price';
-                break;
-            case 'category':
-                $recommendedField = 'id_category_default';
-                break;
-            case 'reference':
-                $recommendedField = 'reference';
-                break;
-            case 'description':
-                $recommendedField = 'description';
-                break;
-            default:
-                $recommendedField = 'custom_field';
-                break;
+        $product = new Product($productId);
+        foreach ($mappedProduct as $field => $value) {
+            $product->$field = $value;
         }
-        return $recommendedField;
+        $product->update();
     }
 
-    private function getCategoryId($categoryName)
+    protected function addNewProduct($mappedProduct, $feedName)
     {
-        $category = Category::searchByName($this->context->language->id, $categoryName);
-        if ($category) {
-            return $category[0]['id_category'];
+        $product = new Product();
+        foreach ($mappedProduct as $field => $value) {
+            $product->$field = $value;
         }
-        return 0;
-    }
+        $product->add();
 
-    private function getCategoryName($categoryId)
-    {
-        $category = new Category($categoryId, $this->context->language->id);
-        return $category->name;
+        Db::getInstance()->insert('xmlfeedmanager_product_feed', [
+            'id_product' => (int)$product->id,
+            'feed_name' => pSQL($feedName),
+        ]);
     }
 }
