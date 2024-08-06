@@ -1,65 +1,64 @@
 <?php
 class XmlFeedHandler
 {
-    public function import($xmlFilePath)
+    public function importFeeds()
     {
-        if (!file_exists($xmlFilePath)) {
-            throw new Exception("File not found: $xmlFilePath");
+        $feeds = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
+        foreach ($feeds as $feed) {
+            $this->import($feed['feed_name'], $feed['feed_url']);
+        }
+    }
+
+    public function import($feedName, $feedUrl)
+    {
+        if (!$feedUrl || !filter_var($feedUrl, FILTER_VALIDATE_URL)) {
+            throw new Exception("Invalid URL: $feedUrl");
         }
 
-        $xml = simplexml_load_file($xmlFilePath);
+        $xmlData = file_get_contents($feedUrl);
+        if (!$xmlData) {
+            throw new Exception("Error fetching XML from URL: $feedUrl");
+        }
+
+        $xml = simplexml_load_string($xmlData);
         if (!$xml) {
-            throw new Exception("Error parsing XML file: $xmlFilePath");
+            throw new Exception("Error parsing XML from URL: $feedUrl");
         }
 
         foreach ($xml->product as $product) {
-            $newProduct = new Product();
-            $newProduct->name = (string) $product->name;
-            $newProduct->price = (float) $product->price;
-            $newProduct->id_category_default = $this->getCategoryId((string) $product->category);
-            $newProduct->reference = (string) $product->reference;
-            $newProduct->description = (string) $product->description;
-            $newProduct->save();
+            $existingProductId = $this->getProductIdByReferenceAndFeed((string) $product->reference, $feedName);
+            if ($existingProductId) {
+                // Update existing product
+                $existingProduct = new Product($existingProductId);
+                $existingProduct->price = (float) $product->price;
+                $existingProduct->description = (string) $product->description;
+                $existingProduct->update();
+            } else {
+                // Add new product
+                $newProduct = new Product();
+                $newProduct->name = (string) $product->name;
+                $newProduct->price = (float) $product->price;
+                $newProduct->id_category_default = $this->getCategoryId((string) $product->category);
+                $newProduct->reference = (string) $product->reference;
+                $newProduct->description = (string) $product->description;
+                $newProduct->add();
+
+                // Track which feed the product came from
+                Db::getInstance()->insert('xmlfeedmanager_product_feed', array(
+                    'id_product' => (int)$newProduct->id,
+                    'feed_name' => pSQL($feedName),
+                ));
+            }
         }
     }
 
-    public function export($xmlFilePath)
+    protected function getProductIdByReferenceAndFeed($reference, $feedName)
     {
-        $products = Product::getProducts($this->context->language->id, 0, 0, 'id_product', 'ASC');
-        $xml = new SimpleXMLElement('<products/>');
-
-        foreach ($products as $product) {
-            $xmlProduct = $xml->addChild('product');
-            $xmlProduct->addChild('id', $product['id_product']);
-            $xmlProduct->addChild('name', $product['name']);
-            $xmlProduct->addChild('price', $product['price']);
-            $xmlProduct->addChild('category', $this->getCategoryName($product['id_category_default']));
-            $xmlProduct->addChild('reference', $product['reference']);
-            $xmlProduct->addChild('description', $product['description']);
-        }
-
-        $xml->asXML($xmlFilePath);
-    }
-
-    public function scanFeed($xmlFilePath)
-    {
-        if (!file_exists($xmlFilePath)) {
-            throw new Exception("File not found: $xmlFilePath");
-        }
-
-        $xml = simplexml_load_file($xmlFilePath);
-        if (!$xml) {
-            throw new Exception("Error parsing XML file: $xmlFilePath");
-        }
-
-        $mappings = [];
-        foreach ($xml->product[0] as $field => $value) {
-            $mappings[] = [
-                'xml_field' => $field,
-                'prestashop_field' => $this->recommendPrestaShopField($field)
-            ];
-        }
-        return $mappings;
+        $sql = 'SELECT p.id_product FROM ' . _DB_PREFIX_ . 'product p
+                JOIN ' . _DB_PREFIX_ . 'xmlfeedmanager_product_feed f
+                ON p.id_product = f.id_product
+                WHERE p.reference = "' . pSQL($reference) . '" AND f.feed_name = "' . pSQL($feedName) . '"';
+        return Db::getInstance()->getValue($sql);
     }
 
     protected function recommendPrestaShopField($xmlField)
