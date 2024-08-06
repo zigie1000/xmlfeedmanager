@@ -94,7 +94,7 @@ class XmlFeedHandler
         if ($category) {
             return $category[0]['id_category'];
         }
-        return 0; // Default category or create a new category
+        return 0;
     }
 
     private function getCategoryName($categoryId)
