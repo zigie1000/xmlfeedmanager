@@ -1,4 +1,5 @@
 <?php
+
 class AdminXmlFeedManagerController extends ModuleAdminController
 {
     public function __construct()
@@ -9,7 +10,7 @@ class AdminXmlFeedManagerController extends ModuleAdminController
 
     public function initContent()
     {
-        $this->content = $this->module->getContent();
         parent::initContent();
+        $this->setTemplate('configure.tpl');
     }
 }
