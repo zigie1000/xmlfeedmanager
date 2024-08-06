@@ -98,12 +98,20 @@ class XmlFeedManager extends Module
                 ),
                 'input' => array(
                     array(
-                        'type' => 'hidden',
-                        'name' => 'XMLFEEDMANAGER_FEED_NAMES[]',
+                        'type' => 'textarea',
+                        'label' => $this->l('Feed Names (one per line)'),
+                        'name' => 'XMLFEEDMANAGER_FEED_NAMES',
+                        'cols' => 60,
+                        'rows' => 10,
+                        'value' => implode("\n", $feedNames),
                     ),
                     array(
-                        'type' => 'hidden',
-                        'name' => 'XMLFEEDMANAGER_FEED_URLS[]',
+                        'type' => 'textarea',
+                        'label' => $this->l('Feed URLs (one per line)'),
+                        'name' => 'XMLFEEDMANAGER_FEED_URLS',
+                        'cols' => 60,
+                        'rows' => 10,
+                        'value' => implode("\n", $feedUrls),
                     ),
                 ),
                 'submit' => array(
@@ -138,8 +146,8 @@ class XmlFeedManager extends Module
         }
 
         return array(
-            'XMLFEEDMANAGER_FEED_NAMES[]' => $feedNames,
-            'XMLFEEDMANAGER_FEED_URLS[]' => $feedUrls,
+            'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
+            'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
         );
     }
 }
