@@ -126,38 +126,16 @@ class XmlFeedManager extends Module
                 ),
                 'input' => array(
                     array(
-                        'type' => 'textarea',
-                        'label' => $this->l('Feed Names (one per line)'),
-                        'name' => 'XMLFEEDMANAGER_FEED_NAMES',
-                        'cols' => 60,
-                        'rows' => 10,
-                        'desc' => $this->l('Enter the names of the feeds, one per line.'),
-                        'value' => implode("\n", $feedNames),
+                        'type' => 'hidden',
+                        'name' => 'XMLFEEDMANAGER_FEED_NAMES[]',
                     ),
                     array(
-                        'type' => 'textarea',
-                        'label' => $this->l('Feed URLs (one per line)'),
-                        'name' => 'XMLFEEDMANAGER_FEED_URLS',
-                        'cols' => 60,
-                        'rows' => 10,
-                        'desc' => $this->l('Enter the URLs of the feeds, one per line.'),
-                        'value' => implode("\n", $feedUrls),
+                        'type' => 'hidden',
+                        'name' => 'XMLFEEDMANAGER_FEED_URLS[]',
                     ),
                     array(
-                        'type' => 'select',
-                        'label' => $this->l('Feed Types (one per line)'),
-                        'name' => 'XMLFEEDMANAGER_FEED_TYPES',
-                        'multiple' => true,
-                        'options' => array(
-                            'query' => array(
-                                array('id' => 'full', 'name' => $this->l('Full')),
-                                array('id' => 'update', 'name' => $this->l('Update'))
-                            ),
-                            'id' => 'id',
-                            'name' => 'name'
-                        ),
-                        'desc' => $this->l('Select the type for each feed.'),
-                        'value' => implode("\n", $feedTypes),
+                        'type' => 'hidden',
+                        'name' => 'XMLFEEDMANAGER_FEED_TYPES[]',
                     ),
                     array(
                         'type' => 'text',
@@ -173,6 +151,38 @@ class XmlFeedManager extends Module
                 )
             )
         );
+
+        // Add feed configurations
+        foreach ($feeds as $index => $feed) {
+            $fields_form['form']['input'][] = array(
+                'type' => 'text',
+                'label' => $this->l('Feed Name'),
+                'name' => 'XMLFEEDMANAGER_FEED_NAMES[' . $index . ']',
+                'value' => $feed['feed_name'],
+                'col' => 3
+            );
+            $fields_form['form']['input'][] = array(
+                'type' => 'text',
+                'label' => $this->l('Feed URL'),
+                'name' => 'XMLFEEDMANAGER_FEED_URLS[' . $index . ']',
+                'value' => $feed['feed_url'],
+                'col' => 6
+            );
+            $fields_form['form']['input'][] = array(
+                'type' => 'select',
+                'label' => $this->l('Feed Type'),
+                'name' => 'XMLFEEDMANAGER_FEED_TYPES[' . $index . ']',
+                'options' => array(
+                    'query' => array(
+                        array('id' => 'full', 'name' => $this->l('Full')),
+                        array('id' => 'update', 'name' => $this->l('Update'))
+                    ),
+                    'id' => 'id',
+                    'name' => 'name'
+                ),
+                'value' => $feed['feed_type']
+            );
+        }
 
         // Add mapping fields
         foreach ($xmlFields as $xmlField) {
@@ -190,6 +200,13 @@ class XmlFeedManager extends Module
             );
         }
 
+        // Add feed history
+        $historyHtml = '<div class="panel"><h3>' . $this->l('Feed History') . '</h3><table class="table"><thead><tr><th>' . $this->l('Feed Name') . '</th><th>' . $this->l('URL') . '</th><th>' . $this->l('Type') . '</th><th>' . $this->l('Last Imported') . '</th></tr></thead><tbody>';
+        foreach ($feeds as $feed) {
+            $historyHtml  .= '<tr><td>' . $feed['feed_name'] . '</td><td>' . $feed['feed_url'] . '</td><td>' . ucfirst($feed['feed_type']) . '</td><td>' . $this->getLastImportDate($feed['feed_name']) . '</td></tr>';
+        }
+        $historyHtml .= '</tbody></table></div>';
+
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -201,7 +218,7 @@ class XmlFeedManager extends Module
         $helper->submit_action = 'submit' . $this->name;
         $helper->fields_value = $this->getConfigFieldsValues($feeds, $fieldMapping, $markup);
 
-        return $helper->generateForm(array($fields_form));
+        return $helper->generateForm(array($fields_form)) . $historyHtml;
     }
 
     protected function getXmlFields($feedUrl)
@@ -268,4 +285,11 @@ class XmlFeedManager extends Module
 
         return $fields_values;
     }
-}                                           
+
+    protected function getLastImportDate($feedName)
+    {
+        // Placeholder function to fetch the last import date of the feed
+        // This should be implemented to retrieve actual data
+        return '2024-08-06';
+    }
+}
