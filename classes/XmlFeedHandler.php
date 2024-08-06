@@ -1,15 +1,19 @@
 <?php
 class XmlFeedHandler
 {
-    public function importFeeds()
+    public function importFeeds($markup)
     {
         $feeds = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
         foreach ($feeds as $feed) {
-            $this->import($feed['feed_name'], $feed['feed_url']);
+            if ($feed['feed_type'] == 'full') {
+                $this->importFullFeed($feed['feed_name'], $feed['feed_url'], $markup);
+            } else {
+                $this->importUpdateFeed($feed['feed_name'], $feed['feed_url'], $markup);
+            }
         }
     }
 
-    public function import($feedName, $feedUrl)
+    public function importFullFeed($feedName, $feedUrl, $markup)
     {
         if (!$feedUrl || !filter_var($feedUrl, FILTER_VALIDATE_URL)) {
             throw new Exception("Invalid URL: $feedUrl");
@@ -28,7 +32,7 @@ class XmlFeedHandler
         $fieldMapping = json_decode(Configuration::get('XMLFEEDMANAGER_FIELD_MAPPING'), true);
 
         foreach ($xml->product as $product) {
-            $mappedProduct = $this->mapFields($product, $fieldMapping);
+            $mappedProduct = $this->mapFields($product, $fieldMapping, $markup);
             $existingProductId = $this->getProductIdByReferenceAndFeed($mappedProduct['reference'], $feedName);
             if ($existingProductId) {
                 $this->updateProduct($existingProductId, $mappedProduct);
@@ -38,12 +42,45 @@ class XmlFeedHandler
         }
     }
 
-    protected function mapFields($product, $fieldMapping)
+    public function importUpdateFeed($feedName, $feedUrl, $markup)
+    {
+        if (!$feedUrl || !filter_var($feedUrl, FILTER_VALIDATE_URL)) {
+            throw new Exception("Invalid URL: $feedUrl");
+        }
+
+        $xmlData = file_get_contents($feedUrl);
+        if (!$xmlData) {
+            throw new Exception("Error fetching XML from URL: $feedUrl");
+        }
+
+        $xml = simplexml_load_string($xmlData);
+        if (!$xml) {
+            throw new Exception("Error parsing XML from URL: $feedUrl");
+        }
+
+        $fieldMapping = json_decode(Configuration::get('XMLFEEDMANAGER_FIELD_MAPPING'), true);
+
+        foreach ($xml->product as $product) {
+            $mappedProduct = $this->mapFields($product, $fieldMapping, $markup);
+            $existingProductId = $this->getProductIdByReferenceAndFeed($mappedProduct['reference'], $feedName);
+            if ($existingProductId) {
+                $this->updateProduct($existingProductId, $mappedProduct);
+            }
+        }
+    }
+
+    protected function mapFields($product, $fieldMapping, $markup)
     {
         $mappedProduct = [];
         foreach ($fieldMapping as $xmlField => $prestashopField) {
             $mappedProduct[$prestashopField] = (string) $product->$xmlField;
         }
+
+        // Apply markup to the price field if it exists
+        if (isset($mappedProduct['price'])) {
+            $mappedProduct['price'] *= (1 + $markup / 100);
+        }
+
         return $mappedProduct;
     }
 
