@@ -156,4 +156,8 @@ class XmlFeedManager extends Module {
             'XMLFEEDMANAGER_FEED_TYPES' => $feedTypes,
         );
     }
+
+    public function hookActionAdminControllerSetMedia($params) {
+        $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
+    }
 }
