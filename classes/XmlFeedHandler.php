@@ -10,6 +10,7 @@ class XmlFeedHandler
             } else {
                 $this->importUpdateFeed($feed['feed_name'], $feed['feed_url'], $markup);
             }
+            Db::getInstance()->update('xmlfeedmanager_feeds', ['last_imported' => date('Y-m-d H:i:s')], 'id_feed = ' . (int)$feed['id_feed']);
         }
     }
 
