@@ -33,20 +33,29 @@ class XmlFeedManager extends Module
 
     private function installDb()
     {
-        $sql = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."xmlfeedmanager_fields` (
+        $sql1 = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."xmlfeedmanager_fields` (
             `id_field` INT(11) NOT NULL AUTO_INCREMENT,
             `field_name` VARCHAR(255) NOT NULL,
             `prestashop_field` VARCHAR(255) NOT NULL,
             PRIMARY KEY (`id_field`)
         ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8;";
-        
-        return Db::getInstance()->execute($sql);
+
+        $sql2 = "CREATE TABLE IF NOT EXISTS `"._DB_PREFIX_."xmlfeedmanager_mappings` (
+            `id_mapping` INT(11) NOT NULL AUTO_INCREMENT,
+            `xml_field` VARCHAR(255) NOT NULL,
+            `prestashop_field` VARCHAR(255) NOT NULL,
+            PRIMARY KEY (`id_mapping`)
+        ) ENGINE="._MYSQL_ENGINE_." DEFAULT CHARSET=utf8;";
+
+        return Db::getInstance()->execute($sql1) && Db::getInstance()->execute($sql2);
     }
 
     private function uninstallDb()
     {
-        $sql = "DROP TABLE IF EXISTS `"._DB_PREFIX_."xmlfeedmanager_fields`;";
-        return Db::getInstance()->execute($sql);
+        $sql1 = "DROP TABLE IF EXISTS `"._DB_PREFIX_."xmlfeedmanager_fields`;";
+        $sql2 = "DROP TABLE IF EXISTS `"._DB_PREFIX_."xmlfeedmanager_mappings`;";
+
+        return Db::getInstance()->execute($sql1) && Db::getInstance()->execute($sql2);
     }
 
     public function getContent()
