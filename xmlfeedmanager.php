@@ -1,9 +1,3 @@
-<?php
-
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -14,9 +8,7 @@ class XmlFeedManager extends Module
         $this->author = 'Marco Zagato';
         $this->need_instance = 0;
         $this->bootstrap = true;
-
         parent::__construct();
-
         $this->displayName = $this->l('XML Feed Manager');
         $this->description = $this->l('Manage multiple XML feeds for importing and updating product data without overwriting existing products.');
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -24,7 +16,9 @@ class XmlFeedManager extends Module
 
     public function install()
     {
-        return parent::install() && $this->registerHook('actionAdminControllerSetMedia') && $this->installDb();
+        return parent::install() &&
+            $this->registerHook('actionAdminControllerSetMedia') &&
+            $this->installDb();
     }
 
     public function uninstall()
@@ -53,19 +47,19 @@ class XmlFeedManager extends Module
 
     public function getContent()
     {
-        $output = '';
-        if (Tools::isSubmit('submit' . $this->name)) {
+        $output = null;
+        if (Tools::isSubmit('submit'.$this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
             $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
-            Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
+            Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'xmlfeedmanager_feeds');
             foreach ($feedNames as $index => $feedName) {
                 if (!empty($feedName) && !empty($feedUrls[$index])) {
                     Db::getInstance()->insert('xmlfeedmanager_feeds', array(
                         'feed_name' => pSQL($feedName),
                         'feed_url' => pSQL($feedUrls[$index]),
                         'feed_type' => pSQL($feedTypes[$index]),
-                        'last_imported' => null
+                        'last_imported' => null,
                     ));
                 }
             }
@@ -73,12 +67,12 @@ class XmlFeedManager extends Module
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
-        return $output . $this->renderForm();
+        return $output.$this->renderForm();
     }
 
     protected function renderForm()
     {
-        $feeds = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
+        $feeds = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_feeds');
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
@@ -87,6 +81,7 @@ class XmlFeedManager extends Module
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
+
         $fields_form = array(
             'form' => array(
                 'legend' => array(
@@ -122,6 +117,8 @@ class XmlFeedManager extends Module
                 )
             )
         );
+
+        // Add feed type selection
         foreach ($feeds as $index => $feed) {
             $fields_form['form']['input'][] = array(
                 'type' => 'select',
@@ -130,7 +127,7 @@ class XmlFeedManager extends Module
                 'options' => array(
                     'query' => array(
                         array('id' => 'full', 'name' => $this->l('Full')),
-                        array('id' => 'update', 'name' => $this->l('Update'))
+                        array('id' => 'update', 'name' => $this->l('Update')),
                     ),
                     'id' => 'id',
                     'name' => 'name'
@@ -138,16 +135,18 @@ class XmlFeedManager extends Module
                 'value' => $feed['feed_type']
             );
         }
+
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
         $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
         $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
         $helper->title = $this->displayName;
-        $helper->submit_action = 'submit' . $this->name;
+        $helper->submit_action = 'submit'.$this->name;
         $helper->fields_value = $this->getConfigFieldsValues($feeds);
+
         return $helper->generateForm(array($fields_form));
     }
 
@@ -171,6 +170,6 @@ class XmlFeedManager extends Module
 
     public function hookActionAdminControllerSetMedia($params)
     {
-        $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
+        $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
