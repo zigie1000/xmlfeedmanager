@@ -9,8 +9,8 @@ class XmlFeedField extends ObjectModel
         'table' => 'xmlfeedmanager_fields',
         'primary' => 'id_field',
         'fields' => array(
-            'field_name' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'size' => 255),
-            'prestashop_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'size' => 255),
+            'field_name' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
+            'prestashop_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
         ),
     );
 
