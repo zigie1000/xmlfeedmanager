@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function () {
     addButton.className = 'btn btn-default';
     addButton.onclick = function () {
         var feedFormGroup = document.getElementById('feed-form-group');
-        var feedCount = feedFormGroup ? feedFormGroup.children.length / 3 : 0;
+        var feedCount = feedFormGroup.children.length / 3;
 
         var newFeedNameDiv = document.createElement('div');
         newFeedNameDiv.className = 'form-group';
