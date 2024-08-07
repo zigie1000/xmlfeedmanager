@@ -48,9 +48,9 @@ class XmlFeedManager extends Module {
         ob_start();
         $output = '';
         if (Tools::isSubmit('submit'.$this->name)) {
-            $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
-            $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
-            $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
+            $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES', array());
+            $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS', array());
+            $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', array());
 
             Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'xmlfeedmanager_feeds');
             foreach ($feedNames as $index => $feedName) {
@@ -74,6 +74,9 @@ class XmlFeedManager extends Module {
 
     protected function renderForm() {
         $feeds = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_feeds');
+        if (!is_array($feeds)) {
+            $feeds = array();
+        }
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
