@@ -1,5 +1,3 @@
-<?php
-
 class AdminXmlFeedManagerController extends ModuleAdminController
 {
     public function __construct()
@@ -8,30 +6,62 @@ class AdminXmlFeedManagerController extends ModuleAdminController
         parent::__construct();
     }
 
-    public function initContent()
+    public function renderForm()
     {
-        $this->context->smarty->assign(array(
-            'module_name' => $this->module->name,
-            'current' => $this->context->link->getAdminLink('AdminModules', true),
-            'token' => Tools::getAdminTokenLite('AdminModules'),
-            'XMLFEEDMANAGER_FEED_NAMES' => Configuration::get('XMLFEEDMANAGER_FEED_NAMES'),
-            'XMLFEEDMANAGER_FEED_URLS' => Configuration::get('XMLFEEDMANAGER_FEED_URLS'),
-            'XMLFEEDMANAGER_FEED_TYPES' => Configuration::get('XMLFEEDMANAGER_FEED_TYPES'),
-            'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE'),
-            'submit_text' => $this->l('Save'),
-        ));
+        $fields_form = array(
+            'form' => array(
+                'legend' => array(
+                    'title' => $this->l('Settings'),
+                ),
+                'input' => array(
+                    array(
+                        'type' => 'textarea',
+                        'label' => $this->l('Feed Names (one per line)'),
+                        'name' => 'XMLFEEDMANAGER_FEED_NAMES',
+                        'cols' => 60,
+                        'rows' => 10,
+                    ),
+                    array(
+                        'type' => 'textarea',
+                        'label' => $this->l('Feed URLs (one per line)'),
+                        'name' => 'XMLFEEDMANAGER_FEED_URLS',
+                        'cols' => 60,
+                        'rows' => 10,
+                    ),
+                    array(
+                        'type' => 'textarea',
+                        'label' => $this->l('Feed Types (one per line)'),
+                        'name' => 'XMLFEEDMANAGER_FEED_TYPES',
+                        'cols' => 60,
+                        'rows' => 10,
+                    ),
+                    array(
+                        'type' => 'text',
+                        'label' => $this->l('Markup Percentage'),
+                        'name' => 'XMLFEEDMANAGER_MARKUP_PERCENTAGE',
+                    ),
+                ),
+                'submit' => array(
+                    'title' => $this->l('Save'),
+                    'class' => 'btn btn-default pull-right'
+                )
+            )
+        );
 
-        parent::initContent();
-        $this->setTemplate('configure.tpl');
-    }
+        $helper = new HelperForm();
+        $helper->module = $this->module;
+        $helper->name_controller = $this->module->name;
+        $helper->identifier = $this->identifier;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->module->name;
+        $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $helper->title = $this->module->displayName;
+        $helper->submit_action = 'submit' . $this->module->name;
 
-    public function postProcess()
-    {
-        if (Tools::isSubmit('submitSave')) {
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_NAMES', Tools::getValue('XMLFEEDMANAGER_FEED_NAMES'));
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_URLS', Tools::getValue('XMLFEEDMANAGER_FEED_URLS'));
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', Tools::getValue('XMLFEEDMANAGER_FEED_TYPES'));
-            Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE'));
-        }
+        $feeds = $this->module->getFeeds();
+        $helper->fields_value = $this->module->getConfigFieldsValues($feeds);
+
+        return $helper->generateForm(array($fields_form));
     }
 }
