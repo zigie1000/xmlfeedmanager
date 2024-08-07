@@ -45,36 +45,30 @@ class XmlFeedManager extends Module {
     }
 
     public function getContent() {
-        ob_start(); // Start output buffering to avoid "headers already sent" error
+        ob_start();
         $output = '';
-
         if (Tools::isSubmit('submit'.$this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
             $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
-            
+
             Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'xmlfeedmanager_feeds');
-            if (is_array($feedNames) && is_array($feedUrls) && is_array($feedTypes)) {
-                foreach ($feedNames as $index => $feedName) {
-                    if (!empty($feedName) && !empty($feedUrls[$index])) {
-                        Db::getInstance()->insert('xmlfeedmanager_feeds', array(
-                            'feed_name' => pSQL($feedName),
-                            'feed_url' => pSQL($feedUrls[$index]),
-                            'feed_type' => pSQL($feedTypes[$index]),
-                            'last_imported' => null
-                        ));
-                    }
+            foreach ($feedNames as $index => $feedName) {
+                if (!empty($feedName) && !empty($feedUrls[$index])) {
+                    Db::getInstance()->insert('xmlfeedmanager_feeds', array(
+                        'feed_name' => pSQL($feedName),
+                        'feed_url' => pSQL($feedUrls[$index]),
+                        'feed_type' => pSQL($feedTypes[$index]),
+                        'last_imported' => null
+                    ));
                 }
             }
-
             $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
-
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
-
         $output .= $this->renderForm();
-        ob_end_flush(); // End output buffering and flush the output
+        ob_end_flush();
         return $output;
     }
 
@@ -83,14 +77,11 @@ class XmlFeedManager extends Module {
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-        if (is_array($feeds)) {
-            foreach ($feeds as $feed) {
-                $feedNames[] = $feed['feed_name'];
-                $feedUrls[] = $feed['feed_url'];
-                $feedTypes[] = $feed['feed_type'];
-            }
+        foreach ($feeds as $feed) {
+            $feedNames[] = $feed['feed_name'];
+            $feedUrls[] = $feed['feed_url'];
+            $feedTypes[] = $feed['feed_type'];
         }
-
         $fields_form = array(
             'form' => array(
                 'legend' => array(
@@ -134,7 +125,6 @@ class XmlFeedManager extends Module {
                 )
             )
         );
-
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -145,7 +135,6 @@ class XmlFeedManager extends Module {
         $helper->title = $this->displayName;
         $helper->submit_action = 'submit'.$this->name;
         $helper->fields_value = $this->getConfigFieldsValues($feeds);
-
         return $helper->generateForm(array($fields_form));
     }
 
@@ -153,14 +142,11 @@ class XmlFeedManager extends Module {
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-        if (is_array($feeds)) {
-            foreach ($feeds as $feed) {
-                $feedNames[] = $feed['feed_name'];
-                $feedUrls[] = $feed['feed_url'];
-                $feedTypes[] = $feed['feed_type'];
-            }
+        foreach ($feeds as $feed) {
+            $feedNames[] = $feed['feed_name'];
+            $feedUrls[] = $feed['feed_url'];
+            $feedTypes[] = $feed['feed_type'];
         }
-
         return array(
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
