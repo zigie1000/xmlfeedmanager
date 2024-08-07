@@ -92,6 +92,8 @@ class XmlFeedManager extends Module
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
+
+        // Generate the form fields for feed names and URLs
         $fields_form = array(
             'form' => array(
                 'legend' => array(
@@ -127,11 +129,13 @@ class XmlFeedManager extends Module
                 )
             )
         );
-        foreach ($feeds as $index => $feed) {
+
+        // Add the feed type selection fields
+        for ($i = 0; $i < count($feeds); $i++) {
             $fields_form['form']['input'][] = array(
                 'type' => 'select',
-                'label' => $this->l('Feed Type'),
-                'name' => 'XMLFEEDMANAGER_FEED_TYPES[]',
+                'label' => $this->l('Feed Type for '.$feedNames[$i]),
+                'name' => 'XMLFEEDMANAGER_FEED_TYPES['.$i.']',
                 'options' => array(
                     'query' => array(
                         array('id' => 'full', 'name' => $this->l('Full')),
@@ -140,9 +144,10 @@ class XmlFeedManager extends Module
                     'id' => 'id',
                     'name' => 'name'
                 ),
-                'value' => $feed['feed_type']
+                'value' => $feedTypes[$i]
             );
         }
+
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
