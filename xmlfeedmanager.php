@@ -1,3 +1,9 @@
+<?php
+
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -18,15 +24,12 @@ class XmlFeedManager extends Module
 
     public function install()
     {
-        return parent::install() &&
-            $this->registerHook('actionAdminControllerSetMedia') &&
-            $this->installDb();
+        return parent::install() && $this->registerHook('actionAdminControllerSetMedia') && $this->installDb();
     }
 
     public function uninstall()
     {
-        return parent::uninstall() &&
-            $this->uninstallDb();
+        return parent::uninstall() && $this->uninstallDb();
     }
 
     private function installDb()
@@ -55,9 +58,7 @@ class XmlFeedManager extends Module
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
             $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
-
             Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
-
             foreach ($feedNames as $index => $feedName) {
                 if (!empty($feedName) && !empty($feedUrls[$index])) {
                     Db::getInstance()->insert('xmlfeedmanager_feeds', array(
@@ -68,10 +69,8 @@ class XmlFeedManager extends Module
                     ));
                 }
             }
-
             $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
-
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         return $output . $this->renderForm();
@@ -83,13 +82,11 @@ class XmlFeedManager extends Module
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-
         foreach ($feeds as $feed) {
             $feedNames[] = $feed['feed_name'];
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
-
         $fields_form = array(
             'form' => array(
                 'legend' => array(
@@ -125,8 +122,6 @@ class XmlFeedManager extends Module
                 )
             )
         );
-
-        // Add feed type selection
         foreach ($feeds as $index => $feed) {
             $fields_form['form']['input'][] = array(
                 'type' => 'select',
@@ -143,7 +138,6 @@ class XmlFeedManager extends Module
                 'value' => $feed['feed_type']
             );
         }
-
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -154,7 +148,6 @@ class XmlFeedManager extends Module
         $helper->title = $this->displayName;
         $helper->submit_action = 'submit' . $this->name;
         $helper->fields_value = $this->getConfigFieldsValues($feeds);
-
         return $helper->generateForm(array($fields_form));
     }
 
@@ -163,13 +156,11 @@ class XmlFeedManager extends Module
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-
         foreach ($feeds as $feed) {
             $feedNames[] = $feed['feed_name'];
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
-
         return array(
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
