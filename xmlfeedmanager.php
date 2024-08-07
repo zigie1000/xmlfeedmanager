@@ -1,3 +1,5 @@
+<?php
+
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -173,3 +175,4 @@ class XmlFeedManager extends Module
         $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
+?>
