@@ -31,4 +31,4 @@ document.addEventListener('DOMContentLoaded', function () {
         feedFormGroup.appendChild(newFeedTypeDiv);
     };
     document.querySelector('.panel-footer').insertBefore(addButton, document.querySelector('.btn.btn-default.pull-right'));
-});           
+});
