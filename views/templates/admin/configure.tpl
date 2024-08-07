@@ -32,16 +32,8 @@
                 </div>
             {/foreach}
         </div>
-        <div class="form-group">
-            <div class="col-lg-9 col-lg-offset-3">
-                <button type="button" id="add-feed" class="btn btn-primary">{$l s='Add Feed'}</button>
-                <button type="button" id="remove-feed" class="btn btn-danger">{$l s='Remove Feed'}</button>
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-lg-9 col-lg-offset-3">
-                <button type="submit" name="submit{$module_name}" class="btn btn-default">{$l s='Save'}</button>
-            </div>
+        <div class="panel-footer">
+            <button type="submit" class="btn btn-default pull-right">{$l s='Save'}</button>
         </div>
     </div>
 </form>
