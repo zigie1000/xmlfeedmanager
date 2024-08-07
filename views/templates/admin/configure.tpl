@@ -1,35 +1,43 @@
 <div class="panel">
-    <div class="panel-heading">{$module->displayName}</div>
+    <div class="panel-heading">
+        {$module_name}
+    </div>
     <div class="panel-body">
-        <form action="{$currentIndex}&token={$token}&configure={$module->name}" method="post" class="form-horizontal">
+        <form action="{$current}&token={$token}" method="post" class="form-horizontal">
             <div id="feed-form-group">
-                <div class="form-group">
-                    <label class="control-label col-lg-3" for="XMLFEEDMANAGER_FEED_NAMES">{$module->l('Feed Names (one per line)')}</label>
-                    <div class="col-lg-9">
-                        <textarea id="XMLFEEDMANAGER_FEED_NAMES" name="XMLFEEDMANAGER_FEED_NAMES[]" class="form-control">{$XMLFEEDMANAGER_FEED_NAMES}</textarea>
+                <!-- Existing form fields for feed names, URLs, and types will be added here dynamically -->
+                {foreach from=$feeds item=feed name=feeds}
+                    <div class="form-group">
+                        <label class="control-label col-lg-3" for="feed_name_{$smarty.foreach.feeds.index}">Feed Name</label>
+                        <div class="col-lg-9">
+                            <input type="text" id="feed_name_{$smarty.foreach.feeds.index}" name="XMLFEEDMANAGER_FEED_NAMES[]" class="form-control" value="{$feed.feed_name}">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-lg-3" for="XMLFEEDMANAGER_FEED_URLS">{$module->l('Feed URLs (one per line)')}</label>
-                    <div class="col-lg-9">
-                        <textarea id="XMLFEEDMANAGER_FEED_URLS" name="XMLFEEDMANAGER_FEED_URLS[]" class="form-control">{$XMLFEEDMANAGER_FEED_URLS}</textarea>
+                    <div class="form-group">
+                        <label class="control-label col-lg-3" for="feed_url_{$smarty.foreach.feeds.index}">Feed URL</label>
+                        <div class="col-lg-9">
+                            <input type="text" id="feed_url_{$smarty.foreach.feeds.index}" name="XMLFEEDMANAGER_FEED_URLS[]" class="form-control" value="{$feed.feed_url}">
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label col-lg-3" for="XMLFEEDMANAGER_FEED_TYPES">{$module->l('Feed Types (one per line)')}</label>
-                    <div class="col-lg-9">
-                        <textarea id="XMLFEEDMANAGER_FEED_TYPES" name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">{$XMLFEEDMANAGER_FEED_TYPES}</textarea>
+                    <div class="form-group">
+                        <label class="control-label col-lg-3" for="feed_type_{$smarty.foreach.feeds.index}">Feed Type</label>
+                        <div class="col-lg-9">
+                            <select id="feed_type_{$smarty.foreach.feeds.index}" name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">
+                                <option value="full" {if $feed.feed_type == 'full'}selected{/if}>Full</option>
+                                <option value="update" {if $feed.feed_type == 'update'}selected{/if}>Update</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
+                {/foreach}
             </div>
             <div class="form-group">
-                <label class="control-label col-lg-3" for="XMLFEEDMANAGER_MARKUP_PERCENTAGE">{$module->l('Markup Percentage')}</label>
+                <label class="control-label col-lg-3" for="XMLFEEDMANAGER_MARKUP_PERCENTAGE">{$markup_percentage_label}</label>
                 <div class="col-lg-9">
-                    <input type="text" id="XMLFEEDMANAGER_MARKUP_PERCENTAGE" name="XMLFEEDMANAGER_MARKUP_PERCENTAGE" class="form-control" value="{$XMLFEEDMANAGER_MARKUP_PERCENTAGE}">
+                    <input type="text" id="XMLFEEDMANAGER_MARKUP_PERCENTAGE" name="XMLFEEDMANAGER_MARKUP_PERCENTAGE" value="{$markup_percentage_value}" class="form-control">
                 </div>
             </div>
             <div class="panel-footer">
-                <button type="submit" name="submit{$module->name}" class="btn btn-default pull-right">{$module->l('Save')}</button>
+                <button type="submit" name="submit{$module_name}" class="btn btn-default pull-right">{$save_button_label}</button>
             </div>
         </form>
     </div>
