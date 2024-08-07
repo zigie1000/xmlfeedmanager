@@ -14,25 +14,23 @@ class XmlFeedManager extends Module
         $this->author = 'Marco Zagato';
         $this->need_instance = 0;
         $this->bootstrap = true;
-
         parent::__construct();
-
         $this->displayName = $this->l('XML Feed Manager');
         $this->description = $this->l('Manage multiple XML feeds for importing and updating product data without overwriting existing products.');
-
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
     public function install()
     {
-        return parent::install() &&
-            $this->registerHook('actionAdminControllerSetMedia') &&
-            $this->installDb();
+        return parent::install()
+            && $this->registerHook('actionAdminControllerSetMedia')
+            && $this->installDb();
     }
 
     public function uninstall()
     {
-        return parent::uninstall() && $this->uninstallDb();
+        return parent::uninstall()
+            && $this->uninstallDb();
     }
 
     private function installDb()
@@ -58,13 +56,12 @@ class XmlFeedManager extends Module
     {
         $output = '';
         if (Tools::isSubmit('submit' . $this->name)) {
-            $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES', array());
-            $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS', array());
-            $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', array());
-
+            $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
+            $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
+            $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
             Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
             foreach ($feedNames as $index => $feedName) {
-                if (!empty($feedName) && !empty($feedUrls[$index]) && !empty($feedTypes[$index])) {
+                if (!empty($feedName) && !empty($feedUrls[$index])) {
                     Db::getInstance()->insert('xmlfeedmanager_feeds', array(
                         'feed_name' => pSQL($feedName),
                         'feed_url' => pSQL($feedUrls[$index]),
@@ -92,6 +89,7 @@ class XmlFeedManager extends Module
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
+
         $fields_form = array(
             'form' => array(
                 'legend' => array(
@@ -172,4 +170,4 @@ class XmlFeedManager extends Module
     {
         $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
     }
-}                    
+}
