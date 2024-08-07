@@ -14,7 +14,9 @@ class XmlFeedManager extends Module
         $this->author = 'Marco Zagato';
         $this->need_instance = 0;
         $this->bootstrap = true;
+
         parent::__construct();
+
         $this->displayName = $this->l('XML Feed Manager');
         $this->description = $this->l('Manage multiple XML feeds for importing and updating product data without overwriting existing products.');
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
@@ -29,8 +31,7 @@ class XmlFeedManager extends Module
 
     public function uninstall()
     {
-        return parent::uninstall()
-            && $this->uninstallDb();
+        return parent::uninstall() && $this->uninstallDb();
     }
 
     private function installDb()
@@ -43,6 +44,7 @@ class XmlFeedManager extends Module
             `last_imported` DATETIME,
             PRIMARY KEY (`id_feed`)
         ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
+
         return Db::getInstance()->execute($sql);
     }
 
@@ -54,12 +56,16 @@ class XmlFeedManager extends Module
 
     public function getContent()
     {
+        ob_start(); // Start output buffering to avoid "headers already sent" error
         $output = '';
+
         if (Tools::isSubmit('submit' . $this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
             $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
+
             Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
+
             foreach ($feedNames as $index => $feedName) {
                 if (!empty($feedName) && !empty($feedUrls[$index])) {
                     Db::getInstance()->insert('xmlfeedmanager_feeds', array(
@@ -70,11 +76,16 @@ class XmlFeedManager extends Module
                     ));
                 }
             }
+
             $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
+
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
+
         $output .= $this->renderForm();
+        ob_end_flush(); // End output buffering and flush the output
+
         return $output;
     }
 
@@ -84,6 +95,7 @@ class XmlFeedManager extends Module
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
+
         foreach ($feeds as $feed) {
             $feedNames[] = $feed['feed_name'];
             $feedUrls[] = $feed['feed_url'];
@@ -153,16 +165,18 @@ class XmlFeedManager extends Module
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
+
         foreach ($feeds as $feed) {
             $feedNames[] = $feed['feed_name'];
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
+
         return array(
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
-            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
             'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
+            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
         );
     }
 
