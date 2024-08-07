@@ -56,7 +56,6 @@ class XmlFeedManager extends Module
 
     public function getContent()
     {
-        ob_start();
         $output = '';
         if (Tools::isSubmit('submit' . $this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES', array());
@@ -65,7 +64,7 @@ class XmlFeedManager extends Module
 
             Db::getInstance()->execute('TRUNCATE TABLE ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
             foreach ($feedNames as $index => $feedName) {
-                if (!empty($feedName) && !empty($feedUrls[$index])) {
+                if (!empty($feedName) && !empty($feedUrls[$index]) && !empty($feedTypes[$index])) {
                     Db::getInstance()->insert('xmlfeedmanager_feeds', array(
                         'feed_name' => pSQL($feedName),
                         'feed_url' => pSQL($feedUrls[$index]),
@@ -79,7 +78,6 @@ class XmlFeedManager extends Module
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         $output .= $this->renderForm();
-        ob_end_flush();
         return $output;
     }
 
@@ -137,6 +135,7 @@ class XmlFeedManager extends Module
                 )
             )
         );
+
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -147,6 +146,7 @@ class XmlFeedManager extends Module
         $helper->title = $this->displayName;
         $helper->submit_action = 'submit' . $this->name;
         $helper->fields_value = $this->getConfigFieldsValues($feeds);
+
         return $helper->generateForm(array($fields_form));
     }
 
@@ -163,8 +163,8 @@ class XmlFeedManager extends Module
         return array(
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
-            'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
             'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
+            'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
         );
     }
 
@@ -172,4 +172,4 @@ class XmlFeedManager extends Module
     {
         $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
     }
-}
+}                    
