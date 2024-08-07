@@ -1,3 +1,5 @@
+<?php
+
 class XmlFeedManager extends Module {
     public function __construct() {
         $this->name = 'xmlfeedmanager';
@@ -38,7 +40,7 @@ class XmlFeedManager extends Module {
     }
 
     public function getContent() {
-        if (ob_get_level() == 0) ob_start(); // Start output buffering to avoid "headers already sent" error
+        ob_start(); // Start output buffering to avoid "headers already sent" error
         $output = '';
         if (Tools::isSubmit('submit'.$this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
@@ -60,7 +62,7 @@ class XmlFeedManager extends Module {
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         $output .= $this->renderForm();
-        ob_end_flush(); // End output buffering and flush the output
+        ob_end_clean(); // End output buffering and clean the buffer
         return $output;
     }
 
