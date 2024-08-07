@@ -1,4 +1,4 @@
-<?php
+ <?php
 if (!defined('_PS_VERSION_')) {
     exit;
 }
@@ -11,131 +11,174 @@ class XmlFeedManager extends Module
         $this->tab = 'administration';
         $this->version = '1.0.0';
         $this->author = 'Marco Zagato';
-        $this->author_uri = 'https://smartmail.store';
         $this->need_instance = 0;
+        $this->bootstrap = true;
 
         parent::__construct();
 
         $this->displayName = $this->l('XML Feed Manager');
-        $this->description = $this->l('Manage XML feeds for your shop.');
+        $this->description = $this->l('Manage multiple XML feeds for importing and updating product data without overwriting existing products.');
 
-        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
+        $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
     public function install()
     {
         return parent::install() &&
-            $this->registerHook('header') &&
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_NAMES', '') &&
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_URLS', '') &&
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', '') &&
-            Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', '0');
+            $this->registerHook('actionAdminControllerSetMedia') &&
+            $this->installDb();
     }
 
     public function uninstall()
     {
-        return parent::uninstall() &&
-            Configuration::deleteByName('XMLFEEDMANAGER_FEED_NAMES') &&
-            Configuration::deleteByName('XMLFEEDMANAGER_FEED_URLS') &&
-            Configuration::deleteByName('XMLFEEDMANAGER_FEED_TYPES') &&
-            Configuration::deleteByName('XMLFEEDMANAGER_MARKUP_PERCENTAGE');
+        return parent::uninstall() && $this->uninstallDb();
+    }
+
+    private function installDb()
+    {
+        $sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds` (
+                    `id_feed` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `feed_name` VARCHAR(255) NOT NULL,
+                    `feed_url` TEXT NOT NULL,
+                    `feed_type` ENUM("full", "update") NOT NULL,
+                    `last_imported` DATETIME,
+                    PRIMARY KEY (`id_feed`)
+                ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+        return Db::getInstance()->execute($sql);
+    }
+
+    private function uninstallDb()
+    {
+        $sql = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds`;';
+        return Db::getInstance()->execute($sql);
     }
 
     public function getContent()
     {
         $output = null;
 
-        if (Tools::isSubmit('submit' . $this->name)) {
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_NAMES', Tools::getValue('XMLFEEDMANAGER_FEED_NAMES'));
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_URLS', Tools::getValue('XMLFEEDMANAGER_FEED_URLS'));
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', Tools::getValue('XMLFEEDMANAGER_FEED_TYPES'));
-            Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE'));
+        if (Tools::isSubmit('submit'.$this->name)) {
+            $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
+            $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
+            $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
 
+            Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'xmlfeedmanager_feeds');
+
+            $feedNamesArray = explode("\n", $feedNames);
+            $feedUrlsArray = explode("\n", $feedUrls);
+            $feedTypesArray = explode("\n", $feedTypes);
+
+            foreach ($feedNamesArray as $index => $feedName) {
+                if (!empty($feedName) && !empty($feedUrlsArray[$index])) {
+                    Db::getInstance()->insert('xmlfeedmanager_feeds', array(
+                        'feed_name' => pSQL($feedName),
+                        'feed_url' => pSQL($feedUrlsArray[$index]),
+                        'feed_type' => pSQL($feedTypesArray[$index]),
+                        'last_imported' => null
+                    ));
+                }
+            }
+
+            $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
+            Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
 
-        return $output . $this->renderForm();
+        return $output.$this->renderForm();
     }
 
-    public function renderForm()
+    protected function renderForm()
     {
-        $helper = new HelperForm();
+        $feeds = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_feeds');
+        $feedNames = array();
+        $feedUrls = array();
+        $feedTypes = array();
 
-        $helper->show_toolbar = false;
-        $helper->table = $this->table;
-        $helper->module = $this;
-        $helper->default_form_language = $this->context->language->id;
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
-        $helper->identifier = $this->identifier;
-        $helper->submit_action = 'submit' . $this->name;
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false) . '&configure=' . $this->name . '&tab_module=' . $this->tab . '&module_name=' . $this->name;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        foreach ($feeds as $feed) {
+            $feedNames[] = $feed['feed_name'];
+            $feedUrls[] = $feed['feed_url'];
+            $feedTypes[] = $feed['feed_type'];
+        }
 
-        $helper->tpl_vars = array(
-            'fields_value' => $this->getConfigFieldsValues(),
-            'languages' => $this->context->controller->getLanguages(),
-            'id_language' => $this->context->language->id,
-        );
-
-        return $helper->generateForm(array($this->getConfigForm()));
-    }
-
-    public function getConfigForm()
-    {
-        return array(
+        $fields_form = array(
             'form' => array(
                 'legend' => array(
                     'title' => $this->l('Settings'),
-                    'icon' => 'icon-cogs',
                 ),
                 'input' => array(
                     array(
                         'type' => 'textarea',
                         'label' => $this->l('Feed Names (one per line)'),
                         'name' => 'XMLFEEDMANAGER_FEED_NAMES',
-                        'rows' => 5,
-                        'cols' => 50,
+                        'cols' => 60,
+                        'rows' => 10,
+                        'value' => implode("\n", $feedNames),
                     ),
                     array(
                         'type' => 'textarea',
                         'label' => $this->l('Feed URLs (one per line)'),
                         'name' => 'XMLFEEDMANAGER_FEED_URLS',
-                        'rows' => 5,
-                        'cols' => 50,
+                        'cols' => 60,
+                        'rows' => 10,
+                        'value' => implode("\n", $feedUrls),
                     ),
                     array(
                         'type' => 'textarea',
                         'label' => $this->l('Feed Types (one per line)'),
                         'name' => 'XMLFEEDMANAGER_FEED_TYPES',
-                        'rows' => 5,
-                        'cols' => 50,
+                        'cols' => 60,
+                        'rows' => 10,
+                        'value' => implode("\n", $feedTypes),
                     ),
                     array(
                         'type' => 'text',
                         'label' => $this->l('Markup Percentage'),
                         'name' => 'XMLFEEDMANAGER_MARKUP_PERCENTAGE',
-                        'suffix' => '%',
+                        'value' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
                     ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
-                ),
-            ),
+                    'class' => 'btn btn-default pull-right'
+                )
+            )
         );
+
+        $helper = new HelperForm();
+        $helper->module = $this;
+        $helper->name_controller = $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $helper->title = $this->displayName;
+        $helper->submit_action = 'submit'.$this->name;
+        $helper->fields_value = $this->getConfigFieldsValues($feeds);
+
+        return $helper->generateForm(array($fields_form));
     }
 
-    public function getConfigFieldsValues()
+    public function getConfigFieldsValues($feeds)
     {
+        $feedNames = array();
+        $feedUrls = array();
+        $feedTypes = array();
+        foreach ($feeds as $feed) {
+            $feedNames[] = $feed['feed_name'];
+            $feedUrls[] = $feed['feed_url'];
+            $feedTypes[] = $feed['feed_type'];
+        }
         return array(
-            'XMLFEEDMANAGER_FEED_NAMES' => Tools::getValue('XMLFEEDMANAGER_FEED_NAMES', Configuration::get('XMLFEEDMANAGER_FEED_NAMES')),
-            'XMLFEEDMANAGER_FEED_URLS' => Tools::getValue('XMLFEEDMANAGER_FEED_URLS', Configuration::get('XMLFEEDMANAGER_FEED_URLS')),
-            'XMLFEEDMANAGER_FEED_TYPES' => Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', Configuration::get('XMLFEEDMANAGER_FEED_TYPES')),
-            'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE')),
+            'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
+            'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
+            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
+            'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
         );
     }
 
-    public function hookHeader($params)
+    public function hookActionAdminControllerSetMedia($params)
     {
-        $this->context->controller->addCSS($this->_path . 'views/css/xmlfeedmanager.css', 'all');
+        $this->context->controller->addCSS($this->_path.'views/css/xmlfeedmanager.css');
+        $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
