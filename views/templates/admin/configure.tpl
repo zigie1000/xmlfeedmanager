@@ -5,7 +5,6 @@
     <form action="{$current}&configure={$module_name}&token={$token}" method="post" class="form-horizontal">
         <div class="panel-body">
             <div id="feed-form-group">
-                <!-- Initial Fields -->
                 {if isset($feeds) && !empty($feeds)}
                     {foreach from=$feeds item=feed key=k}
                         <div class="form-group">
