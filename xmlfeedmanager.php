@@ -162,3 +162,4 @@ class XmlFeedManager extends Module {
         $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
+?>
