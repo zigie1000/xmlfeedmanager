@@ -1,3 +1,8 @@
+<?php
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -71,7 +76,7 @@ class XmlFeedManager extends Module
         $output .= $this->renderForm();
 
         // End output buffering and flush the output
-        ob_end_flush();
+        ob_end_clean();
         
         return $output;
     }
@@ -175,3 +180,4 @@ class XmlFeedManager extends Module
         $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
+?>
