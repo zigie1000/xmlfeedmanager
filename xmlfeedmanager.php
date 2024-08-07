@@ -1,5 +1,9 @@
 <?php
 
+if (!defined('_PS_VERSION_')) {
+    exit;
+}
+
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -36,6 +40,7 @@ class XmlFeedManager extends Module
             `last_imported` DATETIME,
             PRIMARY KEY (`id_feed`)
         ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
+
         return Db::getInstance()->execute($sql);
     }
 
@@ -119,6 +124,8 @@ class XmlFeedManager extends Module
                 )
             )
         );
+
+        // Add feed type selection
         foreach ($feeds as $index => $feed) {
             $fields_form['form']['input'][] = array(
                 'type' => 'select',
@@ -135,6 +142,7 @@ class XmlFeedManager extends Module
                 'value' => $feed['feed_type']
             );
         }
+
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -171,3 +179,4 @@ class XmlFeedManager extends Module
         $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
+?>
