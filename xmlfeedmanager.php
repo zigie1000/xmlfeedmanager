@@ -45,8 +45,7 @@ class XmlFeedManager extends Module
 
     public function getContent()
     {
-        ob_start(); // Start output buffering
-        $output = null;
+        $output = '';
         if (Tools::isSubmit('submit'.$this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
@@ -66,9 +65,7 @@ class XmlFeedManager extends Module
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
-        $output .= $this->renderForm();
-        ob_end_flush(); // End output buffering and flush the output
-        return $output;
+        return $output . $this->renderForm();
     }
 
     protected function renderForm()
