@@ -23,11 +23,11 @@
                         <textarea id="XMLFEEDMANAGER_FEED_TYPES" name="XMLFEEDMANAGER_FEED_TYPES" class="form-control" rows="3">{$XMLFEEDMANAGER_FEED_TYPES}</textarea>
                     </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label class="control-label col-lg-3" for="XMLFEEDMANAGER_MARKUP_PERCENTAGE">Markup Percentage</label>
-                <div class="col-lg-9">
-                    <input type="text" id="XMLFEEDMANAGER_MARKUP_PERCENTAGE" name="XMLFEEDMANAGER_MARKUP_PERCENTAGE" class="form-control" value="{$XMLFEEDMANAGER_MARKUP_PERCENTAGE}">
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="XMLFEEDMANAGER_MARKUP_PERCENTAGE">Markup Percentage</label>
+                    <div class="col-lg-9">
+                        <input type="text" id="XMLFEEDMANAGER_MARKUP_PERCENTAGE" name="XMLFEEDMANAGER_MARKUP_PERCENTAGE" class="form-control" value="{$XMLFEEDMANAGER_MARKUP_PERCENTAGE}">
+                    </div>
                 </div>
             </div>
         </div>
