@@ -38,7 +38,7 @@ class XmlFeedManager extends Module {
     }
 
     public function getContent() {
-        ob_start(); // Start output buffering to avoid "headers already sent" error
+        if (ob_get_level() == 0) ob_start(); // Start output buffering to avoid "headers already sent" error
         $output = '';
         if (Tools::isSubmit('submit'.$this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
