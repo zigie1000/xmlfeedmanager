@@ -38,9 +38,7 @@ class XmlFeedManager extends Module {
     }
 
     public function getContent() {
-        // Start output buffering at the very beginning of this function
-        ob_start();
-
+        ob_start(); // Start output buffering to avoid "headers already sent" error
         $output = '';
         if (Tools::isSubmit('submit'.$this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
@@ -62,9 +60,8 @@ class XmlFeedManager extends Module {
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         $output .= $this->renderForm();
-
-        // End output buffering and flush the output
-        return ob_get_clean() . $output;
+        ob_end_clean(); // End output buffering and clean the buffer
+        return $output;
     }
 
     protected function renderForm() {
