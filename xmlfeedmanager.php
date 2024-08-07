@@ -140,7 +140,7 @@ class XmlFeedManager extends Module {
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
             'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
             'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
-        );
+                    );
     }
 
     public function hookActionAdminControllerSetMedia($params) {
