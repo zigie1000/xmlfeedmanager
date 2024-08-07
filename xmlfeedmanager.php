@@ -3,10 +3,8 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class XmlFeedManager extends Module
-{
-    public function __construct()
-    {
+class XmlFeedManager extends Module {
+    public function __construct() {
         $this->name = 'xmlfeedmanager';
         $this->tab = 'administration';
         $this->version = '1.0.0';
@@ -19,18 +17,15 @@ class XmlFeedManager extends Module
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
-    public function install()
-    {
+    public function install() {
         return parent::install() && $this->registerHook('actionAdminControllerSetMedia') && $this->installDb();
     }
 
-    public function uninstall()
-    {
+    public function uninstall() {
         return parent::uninstall() && $this->uninstallDb();
     }
 
-    private function installDb()
-    {
+    private function installDb() {
         $sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds` (
             `id_feed` INT UNSIGNED NOT NULL AUTO_INCREMENT,
             `feed_name` VARCHAR(255) NOT NULL,
@@ -42,15 +37,13 @@ class XmlFeedManager extends Module
         return Db::getInstance()->execute($sql);
     }
 
-    private function uninstallDb()
-    {
+    private function uninstallDb() {
         $sql = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds`;';
         return Db::getInstance()->execute($sql);
     }
 
-    public function getContent()
-    {
-        ob_start(); // Start output buffering to avoid "headers already sent" error
+    public function getContent() {
+        ob_start();
         $output = '';
         if (Tools::isSubmit('submit'.$this->name)) {
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
@@ -72,12 +65,11 @@ class XmlFeedManager extends Module
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         $output .= $this->renderForm();
-        ob_end_flush(); // End output buffering and flush the output
+        ob_end_flush();
         return $output;
     }
 
-    protected function renderForm()
-    {
+    protected function renderForm() {
         $feeds = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_feeds');
         $feedNames = array();
         $feedUrls = array();
@@ -122,6 +114,7 @@ class XmlFeedManager extends Module
                 )
             )
         );
+
         foreach ($feeds as $index => $feed) {
             $fields_form['form']['input'][] = array(
                 'type' => 'select',
@@ -138,6 +131,7 @@ class XmlFeedManager extends Module
                 'value' => $feed['feed_type']
             );
         }
+
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
@@ -151,8 +145,7 @@ class XmlFeedManager extends Module
         return $helper->generateForm(array($fields_form));
     }
 
-    public function getConfigFieldsValues($feeds)
-    {
+    public function getConfigFieldsValues($feeds) {
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
@@ -169,8 +162,7 @@ class XmlFeedManager extends Module
         );
     }
 
-    public function hookActionAdminControllerSetMedia($params)
-    {
+    public function hookActionAdminControllerSetMedia($params) {
         $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
