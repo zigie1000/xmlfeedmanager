@@ -9,8 +9,8 @@ class XmlFeedMapping extends ObjectModel
         'table' => 'xmlfeedmanager_mappings',
         'primary' => 'id_mapping',
         'fields' => array(
-            'xml_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'size' => 255),
-            'prestashop_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'size' => 255),
+            'xml_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
+            'prestashop_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
         ),
     );
 
@@ -21,13 +21,13 @@ class XmlFeedMapping extends ObjectModel
 
     public static function getAllMappings()
     {
-        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_mappings';
+        $sql = 'SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_mappings';
         return Db::getInstance()->executeS($sql);
     }
 
     public static function getMappingById($id_mapping)
     {
-        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_mappings WHERE id_mapping = ' . (int)$id_mapping;
+        $sql = 'SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_mappings WHERE id_mapping = '.(int)$id_mapping;
         return Db::getInstance()->getRow($sql);
     }
 
