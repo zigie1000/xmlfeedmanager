@@ -22,13 +22,13 @@ document.addEventListener('DOMContentLoaded', function () {
         newFeedTypeDiv.innerHTML = '<label class="control-label col-lg-3" for="feed_type_' + feedCount + '">Feed Type</label>' +
             '<div class="col-lg-9">' +
             '<select id="feed_type_' + feedCount + '" name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">' +
-            '<option value="full">Full</option>' +
-            '<option value="update">Update</option>' +
-            '</select>' +
-            '</div>';
-        feedFormGroup.appendChild(newFeedNameDiv);
-        feedFormGroup.appendChild(newFeedUrlDiv);
-        feedFormGroup.appendChild(newFeedTypeDiv);
-    };
-    document.querySelector('.panel-footer').insertBefore(addButton, document.querySelector('.btn.btn-default.pull-right'));
-});
+    '<option value="full">Full</option>' +
+    '<option value="update">Update</option>' +
+    '</select>' +
+    '</div>';
+feedFormGroup.appendChild(newFeedNameDiv);
+feedFormGroup.appendChild(newFeedUrlDiv);
+feedFormGroup.appendChild(newFeedTypeDiv);
+};
+document.querySelector('.panel-footer').insertBefore(addButton, document.querySelector('.btn.btn-default.pull-right'));
+});       
