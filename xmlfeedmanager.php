@@ -60,7 +60,7 @@ class XmlFeedManager extends Module {
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         $output .= $this->renderForm();
-        ob_end_clean(); // End output buffering and clean the buffer
+        ob_end_flush(); // End output buffering and flush the output
         return $output;
     }
 
@@ -110,7 +110,6 @@ class XmlFeedManager extends Module {
             )
         );
 
-        // Add feed type selection
         foreach ($feeds as $index => $feed) {
             $fields_form['form']['input'][] = array(
                 'type' => 'select',
@@ -138,7 +137,6 @@ class XmlFeedManager extends Module {
         $helper->title = $this->displayName;
         $helper->submit_action = 'submit'.$this->name;
         $helper->fields_value = $this->getConfigFieldsValues($feeds);
-
         return $helper->generateForm(array($fields_form));
     }
 
