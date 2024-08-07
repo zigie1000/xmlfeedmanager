@@ -65,14 +65,16 @@ class XmlFeedManager extends Module
 
             Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'xmlfeedmanager_feeds');
 
-            foreach ($feedNames as $index => $feedName) {
-                if (!empty($feedName) && !empty($feedUrls[$index])) {
-                    Db::getInstance()->insert('xmlfeedmanager_feeds', array(
-                        'feed_name' => pSQL($feedName),
-                        'feed_url' => pSQL($feedUrls[$index]),
-                        'feed_type' => pSQL($feedTypes[$index]),
-                        'last_imported' => null
-                    ));
+            if (is_array($feedNames) && is_array($feedUrls) && is_array($feedTypes)) {
+                foreach ($feedNames as $index => $feedName) {
+                    if (!empty($feedName) && !empty($feedUrls[$index])) {
+                        Db::getInstance()->insert('xmlfeedmanager_feeds', array(
+                            'feed_name' => pSQL($feedName),
+                            'feed_url' => pSQL($feedUrls[$index]),
+                            'feed_type' => pSQL($feedTypes[$index]),
+                            'last_imported' => null
+                        ));
+                    }
                 }
             }
 
@@ -96,10 +98,12 @@ class XmlFeedManager extends Module
         $feedUrls = array();
         $feedTypes = array();
 
-        foreach ($feeds as $feed) {
-            $feedNames[] = $feed['feed_name'];
-            $feedUrls[] = $feed['feed_url'];
-            $feedTypes[] = $feed['feed_type'];
+        if (is_array($feeds)) {
+            foreach ($feeds as $feed) {
+                $feedNames[] = $feed['feed_name'];
+                $feedUrls[] = $feed['feed_url'];
+                $feedTypes[] = $feed['feed_type'];
+            }
         }
 
         $fields_form = array(
