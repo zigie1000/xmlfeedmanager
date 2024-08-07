@@ -5,31 +5,24 @@
     <form action="{$current}&configure={$module_name}&token={$token}" method="post" class="form-horizontal">
         <div class="panel-body">
             <div id="feed-form-group">
-                {if isset($feeds) && !empty($feeds)}
-                    {foreach from=$feeds item=feed key=k}
-                        <div class="form-group">
-                            <label class="control-label col-lg-3" for="feed_name_{$k}">Feed Name</label>
-                            <div class="col-lg-9">
-                                <input type="text" id="feed_name_{$k}" name="XMLFEEDMANAGER_FEED_NAMES[]" class="form-control" value="{$feed.name}">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label col-lg-3" for="feed_url_{$k}">Feed URL</label>
-                            <div class="col-lg-9">
-                                <input type="text" id="feed_url_{$k}" name="XMLFEEDMANAGER_FEED_URLS[]" class="form-control" value="{$feed.url}">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="control-label col-lg-3" for="feed_type_{$k}">Feed Type</label>
-                            <div class="col-lg-9">
-                                <select id="feed_type_{$k}" name="XMLFEEDMANAGER_FEED_TYPES[]" class="form-control">
-                                    <option value="full" {if $feed.type == 'full'}selected{/if}>Full</option>
-                                    <option value="update" {if $feed.type == 'update'}selected{/if}>Update</option>
-                                </select>
-                            </div>
-                        </div>
-                    {/foreach}
-                {/if}
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="XMLFEEDMANAGER_FEED_NAMES">Feed Names (one per line)</label>
+                    <div class="col-lg-9">
+                        <textarea id="XMLFEEDMANAGER_FEED_NAMES" name="XMLFEEDMANAGER_FEED_NAMES" class="form-control" rows="3">{$XMLFEEDMANAGER_FEED_NAMES}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="XMLFEEDMANAGER_FEED_URLS">Feed URLs (one per line)</label>
+                    <div class="col-lg-9">
+                        <textarea id="XMLFEEDMANAGER_FEED_URLS" name="XMLFEEDMANAGER_FEED_URLS" class="form-control" rows="3">{$XMLFEEDMANAGER_FEED_URLS}</textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label col-lg-3" for="XMLFEEDMANAGER_FEED_TYPES">Feed Types (one per line)</label>
+                    <div class="col-lg-9">
+                        <textarea id="XMLFEEDMANAGER_FEED_TYPES" name="XMLFEEDMANAGER_FEED_TYPES" class="form-control" rows="3">{$XMLFEEDMANAGER_FEED_TYPES}</textarea>
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label class="control-label col-lg-3" for="XMLFEEDMANAGER_MARKUP_PERCENTAGE">Markup Percentage</label>
