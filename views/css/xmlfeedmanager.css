@@ -1,5 +1,5 @@
 textarea {
     height: auto;
     min-height: 100px;
-    resize: vertical; /* Allows vertical resizing */
+    resize: vertical;
 }
