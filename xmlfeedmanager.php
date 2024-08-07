@@ -1,13 +1,10 @@
 <?php
-
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class XmlFeedManager extends Module
-{
-    public function __construct()
-    {
+class XmlFeedManager extends Module {
+    public function __construct() {
         $this->name = 'xmlfeedmanager';
         $this->tab = 'administration';
         $this->version = '1.0.0';
@@ -22,21 +19,15 @@ class XmlFeedManager extends Module
         $this->ps_versions_compliancy = array('min' => '1.7', 'max' => _PS_VERSION_);
     }
 
-    public function install()
-    {
-        return parent::install() &&
-            $this->registerHook('actionAdminControllerSetMedia') &&
-            $this->installDb();
+    public function install() {
+        return parent::install() && $this->registerHook('actionAdminControllerSetMedia') && $this->installDb();
     }
 
-    public function uninstall()
-    {
-        return parent::uninstall() &&
-            $this->uninstallDb();
+    public function uninstall() {
+        return parent::uninstall() && $this->uninstallDb();
     }
 
-    private function installDb()
-    {
+    private function installDb() {
         $sql = 'CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds` (
             `id_feed` INT UNSIGNED NOT NULL AUTO_INCREMENT,
             `feed_name` VARCHAR(255) NOT NULL,
@@ -45,18 +36,15 @@ class XmlFeedManager extends Module
             `last_imported` DATETIME,
             PRIMARY KEY (`id_feed`)
         ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8;';
-
         return Db::getInstance()->execute($sql);
     }
 
-    private function uninstallDb()
-    {
+    private function uninstallDb() {
         $sql = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds`;';
         return Db::getInstance()->execute($sql);
     }
 
-    public function getContent()
-    {
+    public function getContent() {
         ob_start(); // Start output buffering to avoid "headers already sent" error
         $output = '';
 
@@ -64,9 +52,9 @@ class XmlFeedManager extends Module
             $feedNames = Tools::getValue('XMLFEEDMANAGER_FEED_NAMES');
             $feedUrls = Tools::getValue('XMLFEEDMANAGER_FEED_URLS');
             $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
+            
             Db::getInstance()->execute('TRUNCATE TABLE '._DB_PREFIX_.'xmlfeedmanager_feeds');
-
-            if (is_array($feedNames)) {
+            if (is_array($feedNames) && is_array($feedUrls) && is_array($feedTypes)) {
                 foreach ($feedNames as $index => $feedName) {
                     if (!empty($feedName) && !empty($feedUrls[$index])) {
                         Db::getInstance()->insert('xmlfeedmanager_feeds', array(
@@ -81,6 +69,7 @@ class XmlFeedManager extends Module
 
             $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
+
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
 
@@ -89,14 +78,11 @@ class XmlFeedManager extends Module
         return $output;
     }
 
-    protected function renderForm()
-    {
+    protected function renderForm() {
         $feeds = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_feeds');
-
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-
         if (is_array($feeds)) {
             foreach ($feeds as $feed) {
                 $feedNames[] = $feed['feed_name'];
@@ -163,12 +149,10 @@ class XmlFeedManager extends Module
         return $helper->generateForm(array($fields_form));
     }
 
-    public function getConfigFieldsValues($feeds)
-    {
+    public function getConfigFieldsValues($feeds) {
         $feedNames = array();
         $feedUrls = array();
         $feedTypes = array();
-
         if (is_array($feeds)) {
             foreach ($feeds as $feed) {
                 $feedNames[] = $feed['feed_name'];
@@ -180,13 +164,12 @@ class XmlFeedManager extends Module
         return array(
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
-            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
             'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
+            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
         );
     }
 
-    public function hookActionAdminControllerSetMedia($params)
-    {
+    public function hookActionAdminControllerSetMedia($params) {
         $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
     }
 }
