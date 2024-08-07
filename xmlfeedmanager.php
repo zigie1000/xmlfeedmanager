@@ -1,5 +1,3 @@
-<?php
-
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -18,9 +16,7 @@ class XmlFeedManager extends Module
 
     public function install()
     {
-        return parent::install() &&
-            $this->registerHook('actionAdminControllerSetMedia') &&
-            $this->installDb();
+        return parent::install() && $this->registerHook('actionAdminControllerSetMedia') && $this->installDb();
     }
 
     public function uninstall()
@@ -61,7 +57,7 @@ class XmlFeedManager extends Module
                         'feed_name' => pSQL($feedName),
                         'feed_url' => pSQL($feedUrls[$index]),
                         'feed_type' => pSQL($feedTypes[$index]),
-                        'last_imported' => null,
+                        'last_imported' => null
                     ));
                 }
             }
@@ -83,7 +79,6 @@ class XmlFeedManager extends Module
             $feedUrls[] = $feed['feed_url'];
             $feedTypes[] = $feed['feed_type'];
         }
-
         $fields_form = array(
             'form' => array(
                 'legend' => array(
@@ -119,8 +114,6 @@ class XmlFeedManager extends Module
                 )
             )
         );
-
-        // Add feed type selection
         foreach ($feeds as $index => $feed) {
             $fields_form['form']['input'][] = array(
                 'type' => 'select',
@@ -129,7 +122,7 @@ class XmlFeedManager extends Module
                 'options' => array(
                     'query' => array(
                         array('id' => 'full', 'name' => $this->l('Full')),
-                        array('id' => 'update', 'name' => $this->l('Update')),
+                        array('id' => 'update', 'name' => $this->l('Update'))
                     ),
                     'id' => 'id',
                     'name' => 'name'
@@ -137,7 +130,6 @@ class XmlFeedManager extends Module
                 'value' => $feed['feed_type']
             );
         }
-
         $helper = new HelperForm();
         $helper->module = $this;
         $helper->name_controller = $this->name;
