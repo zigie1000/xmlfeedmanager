@@ -1,44 +1,29 @@
-<form action="{$link->getAdminLink('AdminXmlFeedManager')}" method="post" class="defaultForm form-horizontal">
-    <div class="panel">
-        <h3>{$l s='Custom Fields'}</h3>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>{$l s='Field Name'}</th>
-                    <th>{$l s='PrestaShop Field'}</th>
-                    <th>{$l s='Actions'}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {foreach from=$fields item=field}
-                <tr>
-                    <td>{$field.field_name}</td>
-                    <td>{$field.prestashop_field}</td>
-                    <td>
-                        <button type="submit" name="deleteXmlField" value="{$field.id_field}" class="btn btn-danger">{$l s='Delete'}</button>
-                    </td>
-                </tr>
-                {/foreach}
-            </tbody>
-        </table>
+<!-- This template should display the list of fields that can be mapped -->
+<div class="panel">
+    <h3>{$module->l('Field Mappings')}</h3>
+    <form action="{$link->getAdminLink('AdminXmlFeedManager')}" method="post" class="form-horizontal">
         <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='Field Name'}</label>
+            <label class="control-label col-lg-3">{$module->l('XML Field')}</label>
             <div class="col-lg-9">
-                <input type="text" name="field_name" class="form-control">
+                <select name="xml_field" class="form-control">
+                    {foreach from=$xml_fields item=field}
+                        <option value="{$field}">{$field}</option>
+                    {/foreach}
+                </select>
             </div>
         </div>
         <div class="form-group">
-            <label class="control-label col-lg-3">{$l s='PrestaShop Field'}</label>
+            <label class="control-label col-lg-3">{$module->l('PrestaShop Field')}</label>
             <div class="col-lg-9">
-                <input type="text" name="prestashop_field" class="form-control">
+                <select name="prestashop_field" class="form-control">
+                    {foreach from=$prestashop_fields item=field}
+                        <option value="{$field}">{$field}</option>
+                    {/foreach}
+                </select>
             </div>
         </div>
         <div class="panel-footer">
-            <button type="submit" class="btn btn-default pull-right" name="addXmlField">
-                <i class="process-icon-plus"></i> {$l s='Add Field'}
-            </button>
+            <button type="submit" name="submitMapping" class="btn btn-default pull-right">{$module->l('Save Mapping')}</button>
         </div>
-    </div>
-</form>
-
-
+    </form>
+</div>
