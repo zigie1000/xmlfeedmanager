@@ -1,19 +1,14 @@
 <?php
-class XmlFeedField extends ObjectModel
+class XmlFeedField
 {
     public $id;
-    public $feed_type;
-    public $field_name;
-    public $mapped_field;
+    public $name;
+    public $value;
 
-    public static $definition = array(
-        'table' => 'xmlfeedfield',
-        'primary' => 'id',
-        'fields' => array(
-            'feed_type' => array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
-            'field_name' => array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
-            'mapped_field' => array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
-        ),
-    );
+    public function __construct($id, $name, $value)
+    {
+        $this->id = $id;
+        $this->name = $name;
+        $this->value = $value;
+    }
 }
-?>
