@@ -20,10 +20,10 @@ class xmlfeedmanager extends Module
 
         parent::__construct();
 
-        $this->displayName = $->l('XML Feed Manager');
-        $this->description = $->l('Manage XML feeds for your PrestaShop store.');
+        $this->displayName = $this->l('XML Feed Manager');
+        $this->description = $this->l('Manage XML feeds for your PrestaShop store.');
 
-        $this->confirmUninstall = $->l('Are you sure you want to uninstall?');
+        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
     public function install()
