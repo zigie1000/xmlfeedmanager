@@ -1,21 +1,19 @@
 <?php
 class XmlFeedField extends ObjectModel
 {
-    public $id_field;
+    public $id;
+    public $feed_type;
     public $field_name;
-    public $prestashop_field;
+    public $mapped_field;
 
     public static $definition = array(
-        'table' => 'xmlfeedmanager_fields',
-        'primary' => 'id_field',
+        'table' => 'xmlfeedfield',
+        'primary' => 'id',
         'fields' => array(
-            'field_name' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-            'prestashop_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
+            'feed_type' => array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
+            'field_name' => array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
+            'mapped_field' => array('type' => self::TYPE_STRING, 'validate' => 'isString', 'required' => true),
         ),
     );
-
-    public function __construct($id_field = null)
-    {
-        parent::__construct($id_field);
-    }
 }
+?>
