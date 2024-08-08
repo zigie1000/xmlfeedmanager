@@ -1,4 +1,5 @@
 <?php
+
 class XmlFeedHandler
 {
     public static function importProducts($xmlFilePath, $ignoreFields = array())
