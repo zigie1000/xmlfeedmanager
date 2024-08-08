@@ -32,16 +32,8 @@ class PrestaShopFeedTypes
             'shop_group' => 'Shop Group',
             'cms' => 'CMS',
             'cms_category' => 'CMS Category',
-            'customization' => 'Customization',
-            'store' => 'Store',
-            'specific_price' => 'Specific Price',
-            'specific_price_rule' => 'Specific Price Rule',
-            'cart_rule' => 'Cart Rule',
-            'cart' => 'Cart',
-            'group' => 'Group',
             'tag' => 'Tag',
             'attachment' => 'Attachment',
-            'supplier_price' => 'Supplier Price',
         );
     }
 }
