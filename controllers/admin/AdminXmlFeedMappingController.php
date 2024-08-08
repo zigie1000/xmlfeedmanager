@@ -52,4 +52,37 @@ class AdminXmlFeedMappingController extends ModuleAdminController
 
         return parent::renderForm();
     }
+
+    public function postProcess()
+    {
+        if (Tools::isSubmit('submitAdd' . $this->table)) {
+            $xmlField = Tools::getValue('xml_field');
+            $prestashopField = Tools::getValue('prestashop_field');
+
+            if (!$xmlField || !$prestashopField) {
+                $this->errors[] = $this->l('Both fields are required.');
+            } else {
+                $mapping = new XmlFeedMapping();
+                $mapping->xml_field = $xmlField;
+                $mapping->prestashop_field = $prestashopField;
+
+                if (!$mapping->save()) {
+                    $this->errors[] = $this->l('Failed to save mapping.');
+                } else {
+                    $this->confirmations[] = $this->l('Mapping saved successfully.');
+                }
+            }
+        } elseif (Tools::isSubmit('delete' . $this->table)) {
+            $idMapping = Tools::getValue('id_mapping');
+            $mapping = new XmlFeedMapping($idMapping);
+
+            if (!$mapping->delete()) {
+                $this->errors[] = $this->l('Failed to delete mapping.');
+            } else {
+                $this->confirmations[] = $this->l('Mapping deleted successfully.');
+            }
+        }
+
+        parent::postProcess();
+    }
 }
