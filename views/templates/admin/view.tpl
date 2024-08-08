@@ -3,47 +3,27 @@
 {block name="content"}
 <div class="panel">
     <div class="panel-heading">
-        <i class="icon-cogs"></i> {$module.displayName}
+        <i class="icon-cogs"></i> {$module.displayName|escape:'html':'UTF-8'}
     </div>
-    <div class="panel-body">
-        {if isset($confirmation)}
-        <div class="alert alert-success">
-            {$confirmation}
-        </div>
-        {/if}
-
-        <form action="{$module.module_url}" method="post" class="form-horizontal">
+    <div class="form-wrapper">
+        <form id="xml_feed_manager_form" class="defaultForm form-horizontal" method="post" enctype="multipart/form-data">
             <div class="form-group">
-                <label class="control-label col-lg-3" for="feed_type">{$module.l('Feed Type')}</label>
-                <div class="col-lg-9">
-                    <select name="feed_type" id="feed_type" class="form-control">
-                        {foreach from=$feed_types item=feed_type}
-                            <option value="{$feed_type.id}" {if $feed_type.selected}selected{/if}>{$feed_type.name}</option>
-                        {/foreach}
+                <label class="control-label col-lg-3">
+                    {l s='Feed Type' mod='xmlfeedmanager'}
+                </label>
+                <div class="col-lg-6">
+                    <select name="XMLFEEDMANAGER_FEED_TYPE" id="XMLFEEDMANAGER_FEED_TYPE" class="form-control">
+                        <option value="product_feed" {if $feed_type == 'product_feed'}selected="selected"{/if}>{l s='Product Feed' mod='xmlfeedmanager'}</option>
+                        <option value="category_feed" {if $feed_type == 'category_feed'}selected="selected"{/if}>{l s='Category Feed' mod='xmlfeedmanager'}</option>
                     </select>
                 </div>
             </div>
-
             <div class="form-group">
-                <label class="control-label col-lg-3" for="xml_field">{$module.l('XML Field')}</label>
-                <div class="col-lg-9">
-                    <input type="text" name="xml_field" id="xml_field" class="form-control" value="{$xml_field}">
+                <div class="col-lg-offset-3 col-lg-6">
+                    <button type="submit" name="submitXMLFeedManager" class="btn btn-default pull-right">
+                        <i class="process-icon-save"></i> {l s='Save' mod='xmlfeedmanager'}
+                    </button>
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label class="control-label col-lg-3" for="prestashop_field">{$module.l('PrestaShop Field')}</label>
-                <div class="col-lg-9">
-                    <select name="prestashop_field" id="prestashop_field" class="form-control">
-                        {foreach from=$prestashop_fields item=prestashop_field}
-                            <option value="{$prestashop_field}" {if $prestashop_field.selected}selected{/if}>{$prestashop_field}</option>
-                        {/foreach}
-                    </select>
-                </div>
-            </div>
-
-            <div class="panel-footer">
-                <button type="submit" name="submit_configure" class="btn btn-primary">{$module.l('Save')}</button>
             </div>
         </form>
     </div>
