@@ -4,7 +4,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once(dirname(__FILE__) . '/classes/PrestaShopFeedTypes.php');
-require_once(dirname(__FILE__) . '/classes/ProductFeedFields.php');
+require_once(dirname(__FILE__) . '/classes/PrestaShopFeedFields.php');
 
 class xmlfeedmanager extends Module
 {
