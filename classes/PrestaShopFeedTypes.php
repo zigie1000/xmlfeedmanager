@@ -34,4 +34,4 @@ class PrestaShopFeedTypes
             'cms_category' => 'CMS Category',
         );
     }
-}       
+}
