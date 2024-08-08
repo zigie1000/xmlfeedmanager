@@ -32,9 +32,6 @@ class PrestaShopFeedTypes
             'shop_group' => 'Shop Group',
             'cms' => 'CMS',
             'cms_category' => 'CMS Category',
-            'tag' => 'Tag',
-            'attachment' => 'Attachment',
         );
     }
-}
-?>
+}       
