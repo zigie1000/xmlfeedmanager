@@ -1,4 +1,5 @@
 <?php
+
 class AdminXmlFeedManagerController extends ModuleAdminController
 {
     public function __construct()
@@ -10,19 +11,27 @@ class AdminXmlFeedManagerController extends ModuleAdminController
     public function initContent()
     {
         parent::initContent();
-        $this->context->smarty->assign(array(
-            'module_dir' => $this->module->getPathUri(),
-        ));
-        $this->setTemplate('admin/configure.tpl');
+        $this->context->smarty->assign([
+            'mappings' => XmlFeedMapping::getMappings(),
+            'fields' => PrestaShopFeedFields::getFields(),
+        ]);
+        $this->setTemplate('mapping.tpl');
     }
 
     public function postProcess()
     {
-        if (Tools::isSubmit('submitXMLFeedManager')) {
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_NAME', Tools::getValue('XMLFEEDMANAGER_FEED_NAME'));
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_URL', Tools::getValue('XMLFEEDMANAGER_FEED_URL'));
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPE', Tools::getValue('XMLFEEDMANAGER_FEED_TYPE'));
-            Configuration::updateValue('XMLFEEDMANAGER_MAPPING', Tools::getValue('XMLFEEDMANAGER_MAPPING'));
+        if (Tools::isSubmit('submitSave')) {
+            $xmlField = Tools::getValue('xml_field');
+            $prestashopField = Tools::getValue('prestashop_field');
+            if ($xmlField && $prestashopField) {
+                XmlFeedMapping::saveMapping($xmlField, $prestashopField);
+            }
+        } elseif (Tools::isSubmit('submitDelete')) {
+            $idMapping = Tools::getValue('id_mapping');
+            if ($idMapping) {
+                XmlFeedMapping::deleteMapping($idMapping);
+            }
         }
+        parent::postProcess();
     }
 }
