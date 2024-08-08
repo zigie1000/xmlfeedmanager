@@ -38,4 +38,4 @@ class XmlFeedMapping extends ObjectModel
         $mapping = new self($idMapping);
         return $mapping->delete();
     }
-}
+}                                 
