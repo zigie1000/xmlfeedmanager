@@ -1,12 +1,5 @@
 <?php
 
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
-
-require_once(dirname(__FILE__) . '/classes/PrestaShopFeedFields.php');
-require_once(dirname(__FILE__) . '/classes/PrestaShopFeedTypes.php');
-
 class XmlFeedManager extends Module
 {
     public function __construct()
@@ -27,12 +20,13 @@ class XmlFeedManager extends Module
     {
         return parent::install() &&
                $this->registerHook('actionAdminControllerSetMedia') &&
-               $this->installDb();
+               $this->installDb() &&
+               $this->initializeConfiguration();
     }
 
     public function uninstall()
     {
-        return parent::uninstall() && $this->uninstallDb();
+        return parent::uninstall() && $this->uninstallDb() && $this->removeConfiguration();
     }
 
     private function installDb()
@@ -52,6 +46,24 @@ class XmlFeedManager extends Module
     {
         $sql = 'DROP TABLE IF EXISTS `'._DB_PREFIX_.'xmlfeedmanager_feeds`;';
         return Db::getInstance()->execute($sql);
+    }
+
+    private function initializeConfiguration()
+    {
+        Configuration::updateValue('XMLFEEDMANAGER_FEED_NAMES', '');
+        Configuration::updateValue('XMLFEEDMANAGER_FEED_URLS', '');
+        Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', '');
+        Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
+        return true;
+    }
+
+    private function removeConfiguration()
+    {
+        Configuration::deleteByName('XMLFEEDMANAGER_FEED_NAMES');
+        Configuration::deleteByName('XMLFEEDMANAGER_FEED_URLS');
+        Configuration::deleteByName('XMLFEEDMANAGER_FEED_TYPES');
+        Configuration::deleteByName('XMLFEEDMANAGER_MARKUP_PERCENTAGE');
+        return true;
     }
 
     public function getContent()
@@ -118,7 +130,7 @@ class XmlFeedManager extends Module
                     array(
                         'type' => 'select',
                         'label' => $this->l('Feed Type'),
-                        'name' => 'XMLFEEDMANAGER_FEED_TYPES[]',
+                        'name' => 'XMLFEEDMANAGER_FEED_TYPES',
                         'options' => array(
                             'query' => $this->getPredefinedFeedTypes(),
                             'id' => 'id',
@@ -185,4 +197,9 @@ class XmlFeedManager extends Module
         }
         return $feedTypes;
     }
-}               
+
+    public function hookActionAdminControllerSetMedia($params)
+    {
+        $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
+    }
+}
