@@ -4,7 +4,7 @@ if (!defined('_PS_VERSION_')) {
 }
 
 require_once(dirname(__FILE__) . '/classes/PrestaShopFeedTypes.php');
-require_once(dirname(__FILE__) . '/classes/PrestaShopFeedFields.php');
+require_once(dirname(__FILE__) . '/classes/ProductFeedFields.php');
 
 class xmlfeedmanager extends Module
 {
@@ -50,6 +50,7 @@ class xmlfeedmanager extends Module
         if (Tools::isSubmit('submit' . $this->name)) {
             $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
+            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', array()));
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         return $output . $this->renderForm();
@@ -80,7 +81,7 @@ class xmlfeedmanager extends Module
                     array(
                         'type' => 'select',
                         'label' => $this->l('Feed Type'),
-                        'name' => 'XMLFEEDMANAGER_FEED_TYPES',
+                        'name' => 'XMLFEEDMANAGER_FEED_TYPES[]',
                         'options' => array(
                             'query' => $this->getPredefinedFeedTypes(),
                             'id' => 'id',
@@ -120,7 +121,7 @@ class xmlfeedmanager extends Module
     {
         return array(
             'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
-            'XMLFEEDMANAGER_FEED_TYPES' => Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', array()),
+            'XMLFEEDMANAGER_FEED_TYPES[]' => Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', Configuration::get('XMLFEEDMANAGER_FEED_TYPES', array())),
         );
     }
 
