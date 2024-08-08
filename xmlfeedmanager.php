@@ -20,10 +20,10 @@ class xmlfeedmanager extends Module
 
         parent::__construct();
 
-        $this->displayName = $this->l('XML Feed Manager');
-        $this->description = $this->l('Manage XML feeds for your PrestaShop store.');
+        $this->displayName = $->l('XML Feed Manager');
+        $this->description = $->l('Manage XML feeds for your PrestaShop store.');
 
-        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+        $this->confirmUninstall = $->l('Are you sure you want to uninstall?');
     }
 
     public function install()
@@ -58,12 +58,6 @@ class xmlfeedmanager extends Module
 
     protected function renderForm()
     {
-        $feeds = Db::getInstance()->executeS('SELECT * FROM ' . _DB_PREFIX_ . 'xmlfeedmanager_feeds');
-        $feedNames = array();
-        foreach ($feeds as $feed) {
-            $feedNames[] = array('id' => $feed['id_feed'], 'name' => $feed['feed_name']);
-        }
-
         $fields_form = array(
             'form' => array(
                 'legend' => array(
