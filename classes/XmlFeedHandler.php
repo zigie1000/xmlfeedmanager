@@ -8,7 +8,7 @@ class XmlFeedHandler
             throw new Exception("XML file does not exist: " . $xmlFilePath);
         }
 
-        libxml_use_internal_errors(true);
+        libxml_use_internal_errors(true);                
         $xml = simplexml_load_file($xmlFilePath);
 
         if ($xml === false) {
