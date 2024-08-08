@@ -1,9 +1,6 @@
 <?php
-if (!defined('_PS_VERSION_')) {
-    exit;
-}
 
-include(dirname(__FILE__) . '/classes/PrestaShopFeedTypes.php');
+require_once _PS_MODULE_DIR_.'xmlfeedmanager/classes/PrestaShopFeedTypes.php';
 
 class XmlFeedManager extends Module {
     public function __construct() {
@@ -72,8 +69,6 @@ class XmlFeedManager extends Module {
     }
 
     protected function renderForm() {
-        global $prestaShopFeedTypes;
-        
         $feeds = Db::getInstance()->executeS('SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_feeds');
         $feedNames = array();
         $feedUrls = array();
@@ -112,13 +107,13 @@ class XmlFeedManager extends Module {
                         'label' => $this->l('Feed Type'),
                         'name' => 'XMLFEEDMANAGER_FEED_TYPES',
                         'options' => array(
-                            'query' => array_map(function($key) {
-                                return array('id' => $key, 'name' => $key);
-                            }, array_keys($prestaShopFeedTypes)),
+                            'query' => $this->getPredefinedFeedTypes(),
                             'id' => 'id',
                             'name' => 'name'
                         ),
-                        'value' => $feedTypes,
+                        'multiple' => true,
+                        'size' => 5,
+                        'value' => implode("\n", $feedTypes),
                     ),
                     array(
                         'type' => 'text',
@@ -140,33 +135,44 @@ class XmlFeedManager extends Module {
         $helper->token = Tools::getAdminTokenLite('AdminModules');
         $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
         $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
-            $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
-            $helper->title = $this->displayName;
-            $helper->submit_action = 'submit'.$this->name;
-            $helper->fields_value = $this->getConfigFieldsValues($feeds);
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $helper->title = $this->displayName;
+        $helper->submit_action = 'submit'.$this->name;
+        $helper->fields_value = $this->getConfigFieldsValues($feeds);
 
-            return $helper->generateForm(array($fields_form));
+        return $helper->generateForm(array($fields_form));
+    }
+
+    public function getConfigFieldsValues($feeds) {
+        $feedNames = array();
+        $feedUrls = array();
+        $feedTypes = array();
+        foreach ($feeds as $feed) {
+            $feedNames[] = $feed['feed_name'];
+            $feedUrls[] = $feed['feed_url'];
+            $feedTypes[] = $feed['feed_type'];
         }
+        return array(
+            'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
+            'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
+            'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
+            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
+        );
+    }
 
-        public function getConfigFieldsValues($feeds) {
-            $feedNames = array();
-            $feedUrls = array();
-            $feedTypes = array();
-            foreach ($feeds as $feed) {
-                $feedNames[] = $feed['feed_name'];
-                $feedUrls[] = $feed['feed_url'];
-                $feedTypes[] = $feed['feed_type'];
-            }
-            return array(
-                'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
-                'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
-                'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
-                'XMLFEEDMANAGER_FEED_TYPES' => $feedTypes,
+    private function getPredefinedFeedTypes() {
+        $feedTypes = array();
+        foreach (PrestaShopFeedTypes::$types as $type => $fields) {
+            $feedTypes[] = array(
+                'id' => $type,
+                'name' => $type
             );
         }
-
-        public function hookActionAdminControllerSetMedia($params) {
-            $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
-        }
+        return $feedTypes;
     }
+
+    public function hookActionAdminControllerSetMedia($params) {
+        $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
+    }
+}
 ?>
