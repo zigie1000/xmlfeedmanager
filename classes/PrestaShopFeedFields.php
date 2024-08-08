@@ -70,7 +70,7 @@ class PrestaShopFeedFields
             'Advanced stock management',
             'Depends On Stock',
             'Warehouse',
-            'Acessories (x,y,z...)'
+            'Accessories (x,y,z...)'
         );
     }
-}
+}            
