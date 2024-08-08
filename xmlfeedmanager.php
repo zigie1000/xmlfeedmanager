@@ -32,16 +32,18 @@ class xmlfeedmanager extends Module
             return false;
         }
 
+        Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
+        Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', json_encode(array()));
+
         return true;
     }
 
     public function uninstall()
     {
-        if (!parent::uninstall()) {
-            return false;
-        }
+        Configuration::deleteByName('XMLFEEDMANAGER_MARKUP_PERCENTAGE');
+        Configuration::deleteByName('XMLFEEDMANAGER_FEED_TYPES');
 
-        return true;
+        return parent::uninstall();
     }
 
     public function getContent()
@@ -50,7 +52,7 @@ class xmlfeedmanager extends Module
         if (Tools::isSubmit('submit' . $this->name)) {
             $markupPercentage = Tools::getValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0);
             Configuration::updateValue('XMLFEEDMANAGER_MARKUP_PERCENTAGE', $markupPercentage);
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', array()));
+            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', json_encode(Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', array())));
             $output .= $this->displayConfirmation($this->l('Settings updated'));
         }
         return $output . $this->renderForm();
@@ -115,7 +117,7 @@ class xmlfeedmanager extends Module
     {
         return array(
             'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
-            'XMLFEEDMANAGER_FEED_TYPES' => Tools::getValue('XMLFEEDMANAGER_FEED_TYPES', Configuration::get('XMLFEEDMANAGER_FEED_TYPES', array())),
+            'XMLFEEDMANAGER_FEED_TYPES' => json_decode(Configuration::get('XMLFEEDMANAGER_FEED_TYPES', json_encode(array())), true),
         );
     }
 
