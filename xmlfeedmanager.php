@@ -113,7 +113,7 @@ class XmlFeedManager extends Module {
                         ),
                         'multiple' => true,
                         'size' => 5,
-                        'value' => implode("\n", $feedTypes),
+                        'value' => $feedTypes,
                     ),
                     array(
                         'type' => 'text',
@@ -156,7 +156,7 @@ class XmlFeedManager extends Module {
             'XMLFEEDMANAGER_FEED_NAMES' => implode("\n", $feedNames),
             'XMLFEEDMANAGER_FEED_URLS' => implode("\n", $feedUrls),
             'XMLFEEDMANAGER_MARKUP_PERCENTAGE' => Configuration::get('XMLFEEDMANAGER_MARKUP_PERCENTAGE', 0),
-            'XMLFEEDMANAGER_FEED_TYPES' => implode("\n", $feedTypes),
+            'XMLFEEDMANAGER_FEED_TYPES' => $feedTypes,
         );
     }
 
