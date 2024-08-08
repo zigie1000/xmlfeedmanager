@@ -23,24 +23,41 @@ class xmlfeedmanager extends Module
 
     public function install()
     {
-        if (!parent::install()) {
+        if (!parent::install() || !$this->installDb()) {
             return false;
         }
-
-        // Database table creation logic if required
 
         return true;
     }
 
     public function uninstall()
     {
-        if (!parent::uninstall()) {
+        if (!parent::uninstall() || !$this->uninstallDb()) {
             return false;
         }
 
-        // Database table deletion logic if required
-
         return true;
+    }
+
+    private function installDb()
+    {
+        $sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'xmlfeedmanager` (
+            `id_xmlfeedmanager` int(11) NOT NULL AUTO_INCREMENT,
+            `feed_name` varchar(255) NOT NULL,
+            `feed_url` varchar(255) NOT NULL,
+            `feed_type` varchar(255) NOT NULL,
+            `markup_percentage` decimal(5,2) DEFAULT NULL,
+            PRIMARY KEY (`id_xmlfeedmanager`)
+        ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
+
+        return Db::getInstance()->execute($sql);
+    }
+
+    private function uninstallDb()
+    {
+        $sql = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'xmlfeedmanager`;';
+
+        return Db::getInstance()->execute($sql);
     }
 
     public function getContent()
@@ -62,7 +79,7 @@ class xmlfeedmanager extends Module
                 ),
                 'input' => array(
                     array(
-                        'type' => 'text',
+                        'type' => 'textarea',
                         'label' => $this->l('Feed Names (one per line)'),
                         'name' => 'XMLFEEDMANAGER_FEED_NAMES',
                         'cols' => 60,
