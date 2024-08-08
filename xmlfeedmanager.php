@@ -5,9 +5,11 @@ if (!defined('_PS_VERSION_')) {
 
 require_once(dirname(__FILE__) . '/classes/PrestaShopFeedTypes.php');
 require_once(dirname(__FILE__) . '/classes/PrestaShopFeedFields.php');
+require_once(dirname(__FILE__) . '/classes/XmlFeedField.php');
 require_once(dirname(__FILE__) . '/classes/XmlFeedHandler.php');
+require_once(dirname(__FILE__) . '/classes/XmlFeedMapping.php');
 
-class XMLFeedManager extends Module
+class xmlfeedmanager extends Module
 {
     public function __construct()
     {
@@ -15,48 +17,44 @@ class XMLFeedManager extends Module
         $this->tab = 'administration';
         $this->version = '1.0.0';
         $this->author = 'Marco Zagato';
-        $this->need_instance = 0;
+        $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
         $this->bootstrap = true;
 
         parent::__construct();
 
         $this->displayName = $this->l('XML Feed Manager');
-        $this->description = $this->l('Manage XML feeds for your Prestashop store.');
-        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+        $this->description = $this->l('Manage XML feeds for your PrestaShop store.');
 
-        if (!Configuration::get('XMLFEEDMANAGER_FEED_TYPES')) {
-            $this->warning = $this->l('No feed types provided.');
-        }
+        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
     }
 
     public function install()
     {
         return parent::install() &&
             $this->registerHook('actionAdminControllerSetMedia') &&
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', json_encode([]));
+            $this->registerHook('displayBackOfficeHeader');
     }
 
     public function uninstall()
     {
-        return parent::uninstall() &&
-            Configuration::deleteByName('XMLFEEDMANAGER_FEED_TYPES');
+        return parent::uninstall();
     }
 
     public function getContent()
     {
         $output = null;
 
-        if (Tools::isSubmit('submit' . $this->name)) {
-            $feedTypes = Tools::getValue('XMLFEEDMANAGER_FEED_TYPES');
-            if (!$feedTypes || empty($feedTypes)) {
+        if (Tools::isSubmit('submit'.$this->name)) {
+            $feedTypes = strval(Tools::getValue('XMLFEEDMANAGER_FEED_TYPES'));
+            if (!$feedTypes || empty($feedTypes) || !Validate::isGenericName($feedTypes)) {
                 $output .= $this->displayError($this->l('Invalid Configuration value'));
             } else {
-                Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', json_encode($feedTypes));
+                Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', $feedTypes);
                 $output .= $this->displayConfirmation($this->l('Settings updated'));
             }
         }
 
-        return $output . $this->renderForm();
+        return $output.$this->renderForm();
     }
 
     public function renderForm()
@@ -65,6 +63,7 @@ class XMLFeedManager extends Module
             'form' => array(
                 'legend' => array(
                     'title' => $this->l('Settings'),
+                    'icon' => 'icon-cogs'
                 ),
                 'input' => array(
                     array(
@@ -77,7 +76,6 @@ class XMLFeedManager extends Module
                             'name' => 'name'
                         ),
                         'multiple' => true,
-                        'required' => true,
                     ),
                 ),
                 'submit' => array(
@@ -88,23 +86,32 @@ class XMLFeedManager extends Module
         );
 
         $helper = new HelperForm();
+
         $helper->module = $this;
         $helper->name_controller = $this->name;
+        $helper->identifier = $this->identifier;
         $helper->token = Tools::getAdminTokenLite('AdminModules');
-        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
-        $helper->default_form_language = (int)Configuration::get('PS_LANG_DEFAULT');
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
+        $helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
+        $helper->default_form_language = $this->context->language->id;
+        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG', 0);
+
         $helper->title = $this->displayName;
-        $helper->submit_action = 'submit' . $this->name;
-        $helper->fields_value['XMLFEEDMANAGER_FEED_TYPES'] = json_decode(Configuration::get('XMLFEEDMANAGER_FEED_TYPES'), true);
+        $helper->show_toolbar = true;
+        $helper->toolbar_scroll = true;
+        $helper->submit_action = 'submit'.$this->name;
+        $helper->fields_value['XMLFEEDMANAGER_FEED_TYPES[]'] = Configuration::get('XMLFEEDMANAGER_FEED_TYPES');
 
         return $helper->generateForm(array($fields_form));
     }
 
-    public function hookActionAdminControllerSetMedia()
+    public function hookActionAdminControllerSetMedia($params)
     {
-        $this->context->controller->addJS($this->_path . 'views/js/xmlfeedmanager.js');
-        $this->context->controller->addCSS($this->_path . 'views/css/xmlfeedmanager.css');
+        $this->context->controller->addJS($this->_path.'views/js/xmlfeedmanager.js');
+        $this->context->controller->addCSS($this->_path.'views/css/xmlfeedmanager.css');
+    }
+
+    public function hookDisplayBackOfficeHeader($params)
+    {
+        $this->context->controller->addCSS($this->_path.'views/css/xmlfeedmanager.css');
     }
 }
-?>
