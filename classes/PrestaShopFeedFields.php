@@ -1,6 +1,6 @@
 <?php
 
-class ProductFeedFields
+class PrestaShopFeedFields
 {
     public static function getFields()
     {
