@@ -142,4 +142,4 @@ class XmlFeedHandler
 
         $xml->asXML($outputFilePath);
     }
-}                                              
+}
