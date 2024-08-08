@@ -1,36 +1,31 @@
+{extends file='layouts/layout.tpl'}
+
+{block name="content"}
 <div class="panel">
-    <h3>{$module->displayName}</h3>
-    <form action="{$link->getAdminLink('AdminXmlFeedManager')}" method="post" class="form-horizontal">
-        <div class="form-group">
-            <label class="control-label col-lg-3">Feed Name</label>
-            <div class="col-lg-9">
-                <input type="text" name="XMLFEEDMANAGER_FEED_NAME" value="{$fields_value.XMLFEEDMANAGER_FEED_NAME|escape:'htmlall':'UTF-8'}" class="form-control">
+    <div class="panel-heading">
+        <i class="icon-cogs"></i> {$module.displayName|escape:'html':'UTF-8'}
+    </div>
+    <div class="form-wrapper">
+        <form id="xml_feed_manager_form" class="defaultForm form-horizontal" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label class="control-label col-lg-3">
+                    {l s='Feed Type' mod='xmlfeedmanager'}
+                </label>
+                <div class="col-lg-6">
+                    <select name="XMLFEEDMANAGER_FEED_TYPE" id="XMLFEEDMANAGER_FEED_TYPE" class="form-control">
+                        <option value="product_feed" {if $feed_type == 'product_feed'}selected="selected"{/if}>{l s='Product Feed' mod='xmlfeedmanager'}</option>
+                        <option value="category_feed" {if $feed_type == 'category_feed'}selected="selected"{/if}>{l s='Category Feed' mod='xmlfeedmanager'}</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-lg-3">Feed URL</label>
-            <div class="col-lg-9">
-                <input type="text" name="XMLFEEDMANAGER_FEED_URL" value="{$fields_value.XMLFEEDMANAGER_FEED_URL|escape:'htmlall':'UTF-8'}" class="form-control">
+            <div class="form-group">
+                <div class="col-lg-offset-3 col-lg-6">
+                    <button type="submit" name="submitXMLFeedManager" class="btn btn-default pull-right">
+                        <i class="process-icon-save"></i> {l s='Save' mod='xmlfeedmanager'}
+                    </button>
+                </div>
             </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-lg-3">Feed Type</label>
-            <div class="col-lg-9">
-                <select name="XMLFEEDMANAGER_FEED_TYPE" class="form-control">
-                    {foreach from=$feed_types item=type}
-                        <option value="{$type.id}" {if $fields_value.XMLFEEDMANAGER_FEED_TYPE == $type.id}selected{/if}>{$type.name}</option>
-                    {/foreach}
-                </select>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="control-label col-lg-3">Mapping</label>
-            <div class="col-lg-9">
-                <textarea name="XMLFEEDMANAGER_MAPPING" rows="10" class="form-control">{$fields_value.XMLFEEDMANAGER_MAPPING|escape:'htmlall':'UTF-8'}</textarea>
-            </div>
-        </div>
-        <div class="panel-footer">
-            <button type="submit" name="submitXMLFeedManager" class="btn btn-default pull-right">{$module->l('Save')}</button>
-        </div>
-    </form>
+        </form>
+    </div>
 </div>
+{/block}
