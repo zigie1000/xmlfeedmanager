@@ -32,86 +32,101 @@ class xmlfeedmanager extends Module
     public function install()
     {
         return parent::install() &&
-            $this->registerHook('actionProductSave') &&
             $this->registerHook('displayBackOfficeHeader') &&
-            $this->installDb();
+            $this->createTables();
     }
 
     public function uninstall()
     {
-        return parent::uninstall() && $this->uninstallDb();
+        return parent::uninstall() && $this->deleteTables();
     }
 
-    private function installDb()
+    private function createTables()
     {
-        $sql = "CREATE TABLE IF NOT EXISTS `" . _DB_PREFIX_ . "xmlfeedmanager_mappings` (
-            `id_mapping` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-            `xml_field` VARCHAR(255) NOT NULL,
-            `prestashop_field` VARCHAR(255) NOT NULL,
+        $sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'xmlfeedmanager_mappings` (
+            `id_mapping` int(11) NOT NULL AUTO_INCREMENT,
+            `xml_field` varchar(255) NOT NULL,
+            `prestashop_field` varchar(255) NOT NULL,
             PRIMARY KEY (`id_mapping`)
-        ) ENGINE=" . _MYSQL_ENGINE_ . " DEFAULT CHARSET=utf8;";
-
+        ) ENGINE=' . _MYSQL_ENGINE_ . ' DEFAULT CHARSET=utf8;';
         return Db::getInstance()->execute($sql);
     }
 
-    private function uninstallDb()
+    private function deleteTables()
     {
-        $sql = "DROP TABLE IF EXISTS `" . _DB_PREFIX_ . "xmlfeedmanager_mappings`;";
-
+        $sql = 'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'xmlfeedmanager_mappings`';
         return Db::getInstance()->execute($sql);
     }
 
     public function getContent()
     {
-        $output = '';
-        if (Tools::isSubmit('submitXmlFeedManager')) {
-            // Save the selected feed type
-            $feedType = Tools::getValue('XMLFEEDMANAGER_FEED_TYPE');
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPE', $feedType);
+        $output = null;
 
-            // Redirect to mapping configuration page
-            Tools::redirectAdmin($this->context->link->getAdminLink('AdminXmlFeedMapping'));
+        if (Tools::isSubmit('submit' . $this->name)) {
+            $feedType = strval(Tools::getValue('XMLFEEDMANAGER_FEED_TYPE'));
+            if (!$feedType || empty($feedType)) {
+                $output .= $this->displayError($this->l('Invalid Configuration value'));
+            } else {
+                Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPE', $feedType);
+                $output .= $this->displayConfirmation($this->l('Settings updated'));
+            }
         }
 
-        // Render the configuration form
-        $output .= $this->renderForm();
-        return $output;
+        return $output . $this->displayForm();
     }
 
-    protected function renderForm()
+    public function displayForm()
     {
-        $fields_form = array(
-            'form' => array(
-                'legend' => array(
-                    'title' => $this->l('Settings'),
-                    'icon' => 'icon-cogs',
-                ),
-                'input' => array(
-                    array(
-                        'type' => 'select',
-                        'label' => $this->l('Feed Type'),
-                        'name' => 'XMLFEEDMANAGER_FEED_TYPE',
-                        'options' => array(
-                            'query' => array(
-                                array('id' => 'product', 'name' => 'Product Feed'),
-                                array('id' => 'category', 'name' => 'Category Feed')
-                            ),
-                            'id' => 'id',
-                            'name' => 'name',
-                        ),
-                    ),
-                ),
-                'submit' => array(
-                    'title' => $this->l('Save'),
-                    'class' => 'btn btn-default pull-right'
-                ),
-            ),
-        );
+        $defaultLang = (int)Configuration::get('PS_LANG_DEFAULT');
+
+        $fieldsForm[0]['form'] = [
+            'legend' => [
+                'title' => $this->l('Settings'),
+            ],
+            'input' => [
+                [
+                    'type' => 'select',
+                    'label' => $this->l('Feed Type'),
+                    'name' => 'XMLFEEDMANAGER_FEED_TYPE',
+                    'options' => [
+                        'query' => PrestaShopFeedTypes::getTypes(),
+                        'id' => 'id',
+                        'name' => 'name',
+                    ],
+                ],
+            ],
+            'submit' => [
+                'title' => $this->l('Save'),
+                'class' => 'btn btn-default pull-right',
+            ],
+        ];
 
         $helper = new HelperForm();
-        $helper->submit_action = 'submitXmlFeedManager';
+
+        $helper->module = $this;
+        $helper->name_controller = $this->name;
+        $helper->token = Tools::getAdminTokenLite('AdminModules');
+        $helper->currentIndex = AdminController::$currentIndex . '&configure=' . $this->name;
+        $helper->default_form_language = $defaultLang;
+        $helper->allow_employee_form_lang = $defaultLang;
+
+        $helper->title = $this->displayName;
+        $helper->show_toolbar = true;
+        $helper->toolbar_scroll = true;
+        $helper->submit_action = 'submit' . $this->name;
+        $helper->toolbar_btn = [
+            'save' => [
+                'desc' => $this->l('Save'),
+                'href' => AdminController::$currentIndex . '&configure=' . $this->name . '&save' . $this->name . '&token=' . Tools::getAdminTokenLite('AdminModules'),
+            ],
+            'back' => [
+                'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
+                'desc' => $this->l('Back to list'),
+            ],
+        ];
+
         $helper->fields_value['XMLFEEDMANAGER_FEED_TYPE'] = Configuration::get('XMLFEEDMANAGER_FEED_TYPE');
 
-        return $helper->generateForm(array($fields_form));
+        return $helper->generateForm($fieldsForm);
     }
 }
