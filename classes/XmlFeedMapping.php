@@ -1,4 +1,5 @@
 <?php
+
 class XmlFeedMapping extends ObjectModel
 {
     public $id_mapping;
@@ -9,39 +10,32 @@ class XmlFeedMapping extends ObjectModel
         'table' => 'xmlfeedmanager_mappings',
         'primary' => 'id_mapping',
         'fields' => array(
-            'xml_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
-            'prestashop_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true),
+            'xml_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'size' => 255),
+            'prestashop_field' => array('type' => self::TYPE_STRING, 'validate' => 'isGenericName', 'required' => true, 'size' => 255),
         ),
     );
 
-    public function __construct($id_mapping = null)
+    public static function getMappings()
     {
-        parent::__construct($id_mapping);
-    }
+        $sql = new DbQuery();
+        $sql->select('*');
+        $sql->from('xmlfeedmanager_mappings');
 
-    public static function getAllMappings()
-    {
-        $sql = 'SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_mappings';
         return Db::getInstance()->executeS($sql);
     }
 
-    public static function getMappingById($id_mapping)
+    public static function saveMapping($xmlField, $prestashopField)
     {
-        $sql = 'SELECT * FROM '._DB_PREFIX_.'xmlfeedmanager_mappings WHERE id_mapping = '.(int)$id_mapping;
-        return Db::getInstance()->getRow($sql);
+        $mapping = new self();
+        $mapping->xml_field = $xmlField;
+        $mapping->prestashop_field = $prestashopField;
+
+        return $mapping->save();
     }
 
-    public static function addMapping($xml_field, $prestashop_field)
+    public static function deleteMapping($idMapping)
     {
-        $mapping = new XmlFeedMapping();
-        $mapping->xml_field = pSQL($xml_field);
-        $mapping->prestashop_field = pSQL($prestashop_field);
-        return $mapping->add();
-    }
-
-    public static function deleteMapping($id_mapping)
-    {
-        $mapping = new XmlFeedMapping($id_mapping);
+        $mapping = new self($idMapping);
         return $mapping->delete();
     }
 }
