@@ -1,15 +1,16 @@
 <?php
+
 if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once(dirname(__FILE__) . '/classes/PrestaShopFeedFields.php');
 require_once(dirname(__FILE__) . '/classes/PrestaShopFeedTypes.php');
+require_once(dirname(__FILE__) . '/classes/PrestaShopFeedFields.php');
 require_once(dirname(__FILE__) . '/classes/XmlFeedField.php');
 require_once(dirname(__FILE__) . '/classes/XmlFeedHandler.php');
 require_once(dirname(__FILE__) . '/classes/XmlFeedMapping.php');
 
-class XmlFeedManager extends Module
+class xmlfeedmanager extends Module
 {
     public function __construct()
     {
@@ -30,30 +31,51 @@ class XmlFeedManager extends Module
 
     public function install()
     {
-        if (!parent::install() || !$this->registerHook('displayAdminProductsExtra')) {
-            return false;
-        }
-        return true;
+        return parent::install() &&
+            $this->registerHook('actionProductSave') &&
+            $this->registerHook('displayBackOfficeHeader') &&
+            $this->installDb();
     }
 
     public function uninstall()
     {
-        if (!parent::uninstall()) {
-            return false;
-        }
-        return true;
+        return parent::uninstall() && $this->uninstallDb();
+    }
+
+    private function installDb()
+    {
+        $sql = "CREATE TABLE IF NOT EXISTS `" . _DB_PREFIX_ . "xmlfeedmanager_mappings` (
+            `id_mapping` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+            `xml_field` VARCHAR(255) NOT NULL,
+            `prestashop_field` VARCHAR(255) NOT NULL,
+            PRIMARY KEY (`id_mapping`)
+        ) ENGINE=" . _MYSQL_ENGINE_ . " DEFAULT CHARSET=utf8;";
+
+        return Db::getInstance()->execute($sql);
+    }
+
+    private function uninstallDb()
+    {
+        $sql = "DROP TABLE IF EXISTS `" . _DB_PREFIX_ . "xmlfeedmanager_mappings`;";
+
+        return Db::getInstance()->execute($sql);
     }
 
     public function getContent()
     {
-        $output = null;
+        $output = '';
+        if (Tools::isSubmit('submitXmlFeedManager')) {
+            // Save the selected feed type
+            $feedType = Tools::getValue('XMLFEEDMANAGER_FEED_TYPE');
+            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPE', $feedType);
 
-        if (Tools::isSubmit('submit'.$this->name)) {
-            Configuration::updateValue('XMLFEEDMANAGER_FEED_TYPES', Tools::getValue('XMLFEEDMANAGER_FEED_TYPES'));
-            $output .= $this->displayConfirmation($this->l('Settings updated'));
+            // Redirect to mapping configuration page
+            Tools::redirectAdmin($this->context->link->getAdminLink('AdminXmlFeedMapping'));
         }
 
-        return $output.$this->renderForm();
+        // Render the configuration form
+        $output .= $this->renderForm();
+        return $output;
     }
 
     protected function renderForm()
@@ -62,53 +84,34 @@ class XmlFeedManager extends Module
             'form' => array(
                 'legend' => array(
                     'title' => $this->l('Settings'),
+                    'icon' => 'icon-cogs',
                 ),
                 'input' => array(
                     array(
                         'type' => 'select',
                         'label' => $this->l('Feed Type'),
-                        'name' => 'XMLFEEDMANAGER_FEED_TYPES[]',
+                        'name' => 'XMLFEEDMANAGER_FEED_TYPE',
                         'options' => array(
-                            'query' => PrestaShopFeedTypes::getTypes(),
+                            'query' => array(
+                                array('id' => 'product', 'name' => 'Product Feed'),
+                                array('id' => 'category', 'name' => 'Category Feed')
+                            ),
                             'id' => 'id',
-                            'name' => 'name'
+                            'name' => 'name',
                         ),
-                        'value' => '',
                     ),
                 ),
                 'submit' => array(
                     'title' => $this->l('Save'),
                     'class' => 'btn btn-default pull-right'
-                )
+                ),
             ),
         );
 
         $helper = new HelperForm();
-
-        $helper->show_toolbar = false;
-        $helper->table = $this->table;
-        $helper->module = $this;
-        $helper->default_form_language = $this->context->language->id;
-        $helper->allow_employee_form_lang = Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') ? Configuration::get('PS_BO_ALLOW_EMPLOYEE_FORM_LANG') : 0;
-
-        $helper->identifier = $this->identifier;
-        $helper->submit_action = 'submit'.$this->name;
-        $helper->currentIndex = $this->context->link->getAdminLink('AdminModules', false).'&configure='.$this->name.'&tab_module='.$this->tab.'&module_name='.$this->name;
-        $helper->token = Tools::getAdminTokenLite('AdminModules');
-
-        $helper->tpl_vars = array(
-            'fields_value' => $this->getConfigFormValues(), /* Add values for your inputs */
-            'languages' => $this->context->controller->getLanguages(),
-            'id_language' => $this->context->language->id
-        );
+        $helper->submit_action = 'submitXmlFeedManager';
+        $helper->fields_value['XMLFEEDMANAGER_FEED_TYPE'] = Configuration::get('XMLFEEDMANAGER_FEED_TYPE');
 
         return $helper->generateForm(array($fields_form));
-    }
-
-    protected function getConfigFormValues()
-    {
-        return array(
-            'XMLFEEDMANAGER_FEED_TYPES[]' => Configuration::get('XMLFEEDMANAGER_FEED_TYPES'),
-        );
     }
 }
